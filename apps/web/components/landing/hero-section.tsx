@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { ArrowRight } from "lucide-react";
 import { AnimatedSphere } from "./animated-sphere";
 
-const words = ["raise",  "own", "price", "verify" ];
+const words = ["raise", "own", "price", "verify"];
 
 export function HeroSection() {
   const [isVisible, setIsVisible] = useState(false);

@@ -67,13 +67,6 @@ export function DashboardNav() {
           </div>
 
           <div className="hidden md:flex items-center gap-6">
-            <Link
-              href="/dashboard"
-              className={`text-foreground/70 hover:text-foreground transition-all duration-300 relative group ${isScrolled ? "text-xs" : "text-sm"}`}
-            >
-              Demo
-              <span className="absolute -bottom-1 left-0 w-0 h-px bg-foreground transition-all duration-300 group-hover:w-full" />
-            </Link>
             <a
               href="https://github.com/stephenhungg/babhacks"
               target="_blank"
