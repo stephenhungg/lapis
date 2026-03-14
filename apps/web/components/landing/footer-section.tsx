@@ -15,7 +15,7 @@ const footerLinks = {
   ],
   Team: [
     { name: "GitHub", href: "https://github.com/stephenhungg/babhacks" },
-    { name: "Demo", href: "/demo" },
+    { name: "Demo", href: "/dashboard" },
   ],
 };
 
