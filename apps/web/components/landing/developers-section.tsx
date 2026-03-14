@@ -217,11 +217,11 @@ export function DevelopersSection() {
             
             {/* Links */}
             <div className="mt-6 flex items-center gap-6 text-sm">
-              <a href="#" className="text-foreground hover:underline underline-offset-4">
+              <a href="https://docs.lapis.bet" target="_blank" rel="noopener noreferrer" className="text-foreground hover:underline underline-offset-4">
                 Read the docs
               </a>
               <span className="text-foreground/20">|</span>
-              <a href="#" className="text-muted-foreground hover:text-foreground">
+              <a href="https://github.com/stephenhungg/lapis" target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-foreground">
                 View on GitHub
               </a>
             </div>

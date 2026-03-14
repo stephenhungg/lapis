@@ -10,17 +10,17 @@ const footerLinks = {
     { name: "Integrations", href: "#integrations" },
   ],
   Developers: [
-    { name: "Documentation", href: "https://lapis.mintlify.app/introduction" },
-    { name: "API Reference", href: "https://lapis.mintlify.app/api-reference/overview" },
+    { name: "Documentation", href: "https://docs.lapis.bet" },
+    { name: "API Reference", href: "https://docs.lapis.bet/api-reference/overview" },
   ],
   Team: [
-    { name: "GitHub", href: "https://github.com/stephenhungg/babhacks" },
-    { name: "Demo", href: "/dashboard" },
+    { name: "GitHub", href: "https://github.com/stephenhungg/lapis" },
+    { name: "Launch App", href: "/dashboard" },
   ],
 };
 
 const socialLinks = [
-  { name: "GitHub", href: "https://github.com/stephenhungg/babhacks" },
+  { name: "GitHub", href: "https://github.com/stephenhungg/lapis" },
 ];
 
 export function FooterSection() {

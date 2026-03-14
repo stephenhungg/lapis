@@ -79,7 +79,7 @@ export function CtaSection() {
                     asChild
                     className="h-14 px-8 text-base rounded-full border-foreground/20 hover:bg-foreground/5"
                   >
-                    <a href="https://github.com/stephenhungg/babhacks" target="_blank" rel="noopener noreferrer">
+                    <a href="https://github.com/stephenhungg/lapis" target="_blank" rel="noopener noreferrer">
                       View on GitHub
                     </a>
                   </Button>
