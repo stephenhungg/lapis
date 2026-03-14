@@ -52,7 +52,7 @@ async function checkAndUpdate(reportId: string): Promise<void> {
   const entry = monitored.get(reportId);
   if (!entry) return;
 
-  const report = getReport(reportId);
+  const report = await getReport(reportId);
   if (!report || report.status === "error") {
     console.log(`[monitor] ${reportId} - report not found or errored, stopping`);
     stopMonitoring(reportId);
@@ -96,7 +96,7 @@ async function checkAndUpdate(reportId: string): Promise<void> {
     entry.lastCommitSha = newGithubData.recentCommits[0]?.sha ?? null;
 
     // update the report
-    updateReport(reportId, {
+    await updateReport(reportId, {
       githubData: newGithubData,
       scores,
       summary,
@@ -116,11 +116,11 @@ async function checkAndUpdate(reportId: string): Promise<void> {
     }
 
     // agent adjusts market position if score changed
-    const market = getMarketByReport(reportId);
+    const market = await getMarketByReport(reportId);
     if (market && market.status === "open" && oldScore !== null && oldScore !== scores.overall) {
       const { valuation, confidence } = estimateValuation(scores.overall);
       try {
-        placeBet(market.id, "ai-agent-monitor", valuation, confidence);
+        await placeBet(market.id, "ai-agent-monitor", valuation, confidence);
         console.log(
           `[monitor] ${reportId} - agent adjusted market position: $${valuation}M (confidence: ${confidence})`
         );
@@ -133,15 +133,15 @@ async function checkAndUpdate(reportId: string): Promise<void> {
   }
 }
 
-export function startMonitoring(
+export async function startMonitoring(
   reportId: string,
   githubUrl: string,
   intervalMs: number = 30_000 // default: check every 30 seconds
-): MonitoredRepo {
+): Promise<MonitoredRepo> {
   // stop existing monitor if any
   stopMonitoring(reportId);
 
-  const report = getReport(reportId);
+  const report = await getReport(reportId);
   const entry: MonitoredRepo = {
     reportId,
     githubUrl,

@@ -1,7 +1,8 @@
 import { v4 as uuidv4 } from "uuid";
 import type { ReportCard } from "@lapis/shared";
+import { redisGet, redisSet } from "./redis.js";
 
-const reports = new Map<string, ReportCard>();
+const REPORT_PREFIX = "report:";
 
 export function createReport(githubUrl: string): ReportCard {
   const report: ReportCard = {
@@ -19,21 +20,24 @@ export function createReport(githubUrl: string): ReportCard {
     completedAt: null,
     error: null,
   };
-  reports.set(report.id, report);
+  // fire-and-forget the async write -- caller doesn't await
+  redisSet(REPORT_PREFIX + report.id, report);
   return report;
 }
 
-export function updateReport(
+export async function updateReport(
   id: string,
   updates: Partial<ReportCard>
-): ReportCard {
-  const report = reports.get(id);
+): Promise<ReportCard> {
+  const report = await redisGet<ReportCard>(REPORT_PREFIX + id);
   if (!report) throw new Error(`Report not found: ${id}`);
   const updated = { ...report, ...updates };
-  reports.set(id, updated);
+  await redisSet(REPORT_PREFIX + id, updated);
   return updated;
 }
 
-export function getReport(id: string): ReportCard | undefined {
-  return reports.get(id);
+export async function getReport(
+  id: string
+): Promise<ReportCard | undefined> {
+  return redisGet<ReportCard>(REPORT_PREFIX + id);
 }

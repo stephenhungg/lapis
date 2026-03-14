@@ -2,6 +2,10 @@
 // Since Polymarket doesn't support programmatic market creation,
 // we run our own simple prediction market for startup valuations.
 
+import { redisGet, redisSet, redisGetAll } from "../redis.js";
+
+const MARKET_PREFIX = "market:";
+
 export interface MarketBet {
   userId: string;
   valuation: number; // in millions
@@ -23,14 +27,12 @@ export interface ValuationMarket {
   agentConfidence: number | null;
 }
 
-const markets = new Map<string, ValuationMarket>();
-
-export function createMarket(
+export async function createMarket(
   reportId: string,
   githubUrl: string,
   agentValuation?: number,
   agentConfidence?: number
-): ValuationMarket {
+): Promise<ValuationMarket> {
   const market: ValuationMarket = {
     id: `mkt_${reportId.slice(0, 8)}`,
     reportId,
@@ -54,17 +56,17 @@ export function createMarket(
     });
   }
 
-  markets.set(market.id, market);
+  await redisSet(MARKET_PREFIX + market.id, market);
   return market;
 }
 
-export function placeBet(
+export async function placeBet(
   marketId: string,
   userId: string,
   valuation: number,
   amount: number
-): ValuationMarket {
-  const market = markets.get(marketId);
+): Promise<ValuationMarket> {
+  const market = await redisGet<ValuationMarket>(MARKET_PREFIX + marketId);
   if (!market) throw new Error(`Market not found: ${marketId}`);
   if (market.status !== "open") throw new Error("Market is closed");
 
@@ -82,27 +84,27 @@ export function placeBet(
       market.bets.reduce((sum, b) => sum + b.valuation * b.amount, 0) / totalWeight;
   }
 
+  await redisSet(MARKET_PREFIX + marketId, market);
   return market;
 }
 
-export function closeMarket(marketId: string): ValuationMarket {
-  const market = markets.get(marketId);
+export async function closeMarket(marketId: string): Promise<ValuationMarket> {
+  const market = await redisGet<ValuationMarket>(MARKET_PREFIX + marketId);
   if (!market) throw new Error(`Market not found: ${marketId}`);
 
   market.status = "closed";
   market.closedAt = new Date().toISOString();
+  await redisSet(MARKET_PREFIX + marketId, market);
   return market;
 }
 
-export function getMarketById(marketId: string): ValuationMarket | undefined {
-  return markets.get(marketId);
+export async function getMarketById(marketId: string): Promise<ValuationMarket | undefined> {
+  return redisGet<ValuationMarket>(MARKET_PREFIX + marketId);
 }
 
-export function getMarketByReport(reportId: string): ValuationMarket | undefined {
-  for (const market of markets.values()) {
-    if (market.reportId === reportId) return market;
-  }
-  return undefined;
+export async function getMarketByReport(reportId: string): Promise<ValuationMarket | undefined> {
+  const all = await redisGetAll<ValuationMarket>(MARKET_PREFIX + "*");
+  return all.find((m) => m.reportId === reportId);
 }
 
 // estimate a valuation from the report scores

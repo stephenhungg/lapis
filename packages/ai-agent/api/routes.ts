@@ -71,8 +71,8 @@ router.post("/analyze", (req, res) => {
 });
 
 // GET /report/:id/score - free endpoint for polling status + scores
-router.get("/report/:id/score", (req, res) => {
-  const report = getReport(req.params.id);
+router.get("/report/:id/score", async (req, res) => {
+  const report = await getReport(req.params.id);
 
   if (!report) {
     const response: ApiResponse<never> = {
@@ -100,9 +100,9 @@ router.get("/report/:id/score", (req, res) => {
   res.json(response);
 });
 
-// GET /report/:id - full report (behind x402 paywall)
-router.get("/report/:id", (req, res) => {
-  const report = getReport(req.params.id);
+// GET /report/:id - full report (behind XRPL paywall)
+router.get("/report/:id", async (req, res) => {
+  const report = await getReport(req.params.id);
 
   if (!report) {
     const response: ApiResponse<never> = {
@@ -125,8 +125,8 @@ router.get("/report/:id", (req, res) => {
 // ==========================================
 
 // POST /market/:reportId - open a prediction market for a completed report
-router.post("/market/:reportId", (req, res) => {
-  const report = getReport(req.params.reportId);
+router.post("/market/:reportId", async (req, res) => {
+  const report = await getReport(req.params.reportId);
 
   if (!report) {
     const response: ApiResponse<never> = {
@@ -147,7 +147,7 @@ router.post("/market/:reportId", (req, res) => {
   }
 
   // check if market already exists
-  const existing = getMarketByReport(report.id);
+  const existing = await getMarketByReport(report.id);
   if (existing) {
     const response: ApiResponse<ValuationMarket> = {
       success: true,
@@ -159,7 +159,7 @@ router.post("/market/:reportId", (req, res) => {
 
   // agent seeds the market with its own valuation estimate
   const { valuation, confidence } = estimateValuation(report.scores.overall);
-  const market = createMarket(report.id, report.githubUrl, valuation, confidence);
+  const market = await createMarket(report.id, report.githubUrl, valuation, confidence);
 
   console.log(
     `Market ${market.id} opened for ${report.githubUrl}. Agent seed: $${valuation}M (confidence: ${confidence})`
@@ -173,7 +173,7 @@ router.post("/market/:reportId", (req, res) => {
 });
 
 // POST /market/:marketId/bet - place a bet on a market
-router.post("/market/:marketId/bet", (req, res) => {
+router.post("/market/:marketId/bet", async (req, res) => {
   const { userId, valuation, amount } = req.body as {
     userId: string;
     valuation: number;
@@ -194,7 +194,7 @@ router.post("/market/:marketId/bet", (req, res) => {
   }
 
   try {
-    const market = placeBet(req.params.marketId, userId, valuation, amount);
+    const market = await placeBet(req.params.marketId, userId, valuation, amount);
     const response: ApiResponse<ValuationMarket> = {
       success: true,
       data: market,
@@ -210,9 +210,9 @@ router.post("/market/:marketId/bet", (req, res) => {
 });
 
 // POST /market/:marketId/close - close a market and finalize valuation
-router.post("/market/:marketId/close", (req, res) => {
+router.post("/market/:marketId/close", async (req, res) => {
   try {
-    const market = closeMarket(req.params.marketId);
+    const market = await closeMarket(req.params.marketId);
     const response: ApiResponse<ValuationMarket> = {
       success: true,
       data: market,
@@ -228,8 +228,8 @@ router.post("/market/:marketId/close", (req, res) => {
 });
 
 // GET /market/:marketId - get market data
-router.get("/market/:marketId", (req, res) => {
-  const market = getMarketById(req.params.marketId);
+router.get("/market/:marketId", async (req, res) => {
+  const market = await getMarketById(req.params.marketId);
 
   if (!market) {
     const response: ApiResponse<never> = {
@@ -252,8 +252,8 @@ router.get("/market/:marketId", (req, res) => {
 // ==========================================
 
 // POST /monitor/:reportId - start continuously monitoring a repo
-router.post("/monitor/:reportId", (req, res) => {
-  const report = getReport(req.params.reportId);
+router.post("/monitor/:reportId", async (req, res) => {
+  const report = await getReport(req.params.reportId);
 
   if (!report) {
     const response: ApiResponse<never> = {
@@ -274,7 +274,7 @@ router.post("/monitor/:reportId", (req, res) => {
   }
 
   const intervalMs = Math.max(10_000, req.body?.intervalMs ?? 30_000);
-  const entry = startMonitoring(report.id, report.githubUrl, intervalMs);
+  const entry = await startMonitoring(report.id, report.githubUrl, intervalMs);
 
   const response: ApiResponse<{
     reportId: string;
@@ -340,13 +340,13 @@ router.get("/monitor/:reportId", (req, res) => {
 // This is the money route: issues MPT, creates escrows, pays RLUSD fee
 router.post("/market/:marketId/settle", async (req, res) => {
   // idempotency: return existing settlement if already settled
-  const existingSettlement = getSettlement(req.params.marketId);
+  const existingSettlement = await getSettlement(req.params.marketId);
   if (existingSettlement) {
     res.json({ success: true, data: sanitizeSettlement(existingSettlement) });
     return;
   }
 
-  const market = getMarketById(req.params.marketId);
+  const market = await getMarketById(req.params.marketId);
 
   if (!market) {
     const response: ApiResponse<never> = {
@@ -359,7 +359,7 @@ router.post("/market/:marketId/settle", async (req, res) => {
 
   // close the market if still open
   if (market.status === "open") {
-    closeMarket(market.id);
+    await closeMarket(market.id);
   }
 
   if (!market.consensusValuation) {
@@ -371,7 +371,7 @@ router.post("/market/:marketId/settle", async (req, res) => {
     return;
   }
 
-  const report = getReport(market.reportId);
+  const report = await getReport(market.reportId);
   if (!report || report.status !== "complete" || !report.scores) {
     const response: ApiResponse<never> = {
       success: false,
@@ -440,7 +440,7 @@ router.get("/xrpl/status", async (_req, res) => {
       }
     }
 
-    const settlements = getAllSettlements();
+    const settlements = await getAllSettlements();
 
     const response: ApiResponse<{
       configured: boolean;
@@ -497,7 +497,7 @@ router.post("/xrpl/escrow/:marketId/release", async (req, res) => {
     return;
   }
 
-  const settlement = getSettlement(req.params.marketId);
+  const settlement = await getSettlement(req.params.marketId);
   if (!settlement) {
     const response: ApiResponse<never> = {
       success: false,
@@ -519,7 +519,7 @@ router.post("/xrpl/escrow/:marketId/release", async (req, res) => {
 
   try {
     const agentWallet = walletFromEnv("AGENT");
-    const fulfillment = getFulfillment(
+    const fulfillment = await getFulfillment(
       participant.escrow.ownerAddress,
       participant.escrow.escrowSequence
     );

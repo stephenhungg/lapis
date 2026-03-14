@@ -9,14 +9,14 @@ export async function runAnalysisPipeline(
   twitterHandle?: string
 ): Promise<void> {
   try {
-    updateReport(reportId, { status: "scraping" });
+    await updateReport(reportId, { status: "scraping" });
 
     const [githubData, socialData] = await Promise.all([
       scrapeGitHub(githubUrl),
       scrapeSocial(twitterHandle),
     ]);
 
-    updateReport(reportId, {
+    await updateReport(reportId, {
       status: "analyzing",
       githubData,
       socialData,
@@ -49,7 +49,7 @@ export async function runAnalysisPipeline(
       industrySentiment
     );
 
-    updateReport(reportId, {
+    await updateReport(reportId, {
       scores,
       summary,
       strengths,
@@ -67,7 +67,7 @@ export async function runAnalysisPipeline(
         scores
       );
 
-      updateReport(reportId, {
+      await updateReport(reportId, {
         status: "complete",
         adversarialReport,
         completedAt: new Date().toISOString(),
@@ -82,7 +82,7 @@ export async function runAnalysisPipeline(
         `Adversarial audit failed for ${reportId}, completing with primary analysis only:`,
         (auditErr as Error).message
       );
-      updateReport(reportId, {
+      await updateReport(reportId, {
         status: "complete",
         completedAt: new Date().toISOString(),
       });
@@ -90,7 +90,7 @@ export async function runAnalysisPipeline(
   } catch (err) {
     const message = err instanceof Error ? err.message : "Unknown error";
     console.error(`Pipeline failed for ${reportId}:`, message);
-    updateReport(reportId, {
+    await updateReport(reportId, {
       status: "error",
       error: message,
     });

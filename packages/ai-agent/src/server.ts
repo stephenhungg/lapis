@@ -8,15 +8,24 @@ dotenv.config({ path: resolve(process.cwd(), ".env") });
 
 import express from "express";
 import cors from "cors";
-import { createX402Middleware } from "./x402/middleware.js";
+import { createXrplPaywallMiddleware } from "./xrpl/paywall.js";
 import { router } from "../api/routes.js";
+import { getRedis } from "./redis.js";
 
 async function main() {
+  // initialize redis connection (falls back to in-memory if not configured)
+  const redis = getRedis();
+  if (redis) {
+    console.log("Redis configured, using persistent storage");
+  } else {
+    console.log("No REDIS_URL set, using in-memory storage (state lost on restart)");
+  }
+
   const app = express();
 
   app.use(cors());
   app.use(express.json());
-  app.use(await createX402Middleware());
+  app.use(await createXrplPaywallMiddleware());
   app.use(router);
 
   const PORT = process.env.PORT || 3001;
@@ -26,7 +35,7 @@ async function main() {
     console.log(`\n  Analysis:`);
     console.log(`  POST /analyze             - submit a GitHub repo for analysis`);
     console.log(`  GET  /report/:id/score    - poll analysis status and scores`);
-    console.log(`  GET  /report/:id          - full report card (x402 paywalled)`);
+    console.log(`  GET  /report/:id          - full report card (XRPL paywalled)`);
     console.log(`\n  Prediction Market:`);
     console.log(`  POST /market/:reportId    - open market for a completed report`);
     console.log(`  POST /market/:id/bet      - place a valuation bet`);

@@ -170,7 +170,7 @@ async function _settleMarketInner(
       });
 
       // store fulfillment so agent can release later
-      storeFulfillment(
+      await storeFulfillment(
         escrow.ownerAddress,
         escrow.escrowSequence,
         fulfillment
@@ -255,7 +255,7 @@ async function _settleMarketInner(
     explorerLinks,
   };
 
-  saveSettlement(market.id, result);
+  await saveSettlement(market.id, result);
 
   console.log(`\n[settle] settlement complete for ${companyName}`);
   console.log(`[settle] MPT: ${equityToken.mptIssuanceId}`);

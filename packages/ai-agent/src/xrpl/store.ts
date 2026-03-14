@@ -1,47 +1,44 @@
 import type { SettlementResult } from "./types.js";
+import { redisGet, redisSet, redisGetAll } from "../redis.js";
 
-const settlements = new Map<string, SettlementResult>();
+const SETTLEMENT_PREFIX = "settlement:";
+const FULFILLMENT_PREFIX = "fulfillment:";
 
-// fulfillment storage: key = "ownerAddress:escrowSequence" -> fulfillment hex
-const fulfillments = new Map<string, string>();
-
-export function saveSettlement(
+export async function saveSettlement(
   marketId: string,
   result: SettlementResult
-): void {
-  settlements.set(marketId, result);
+): Promise<void> {
+  await redisSet(SETTLEMENT_PREFIX + marketId, result);
 }
 
-export function getSettlement(
+export async function getSettlement(
   marketId: string
-): SettlementResult | undefined {
-  return settlements.get(marketId);
+): Promise<SettlementResult | undefined> {
+  return redisGet<SettlementResult>(SETTLEMENT_PREFIX + marketId);
 }
 
-export function getSettlementByReport(
+export async function getSettlementByReport(
   reportId: string
-): SettlementResult | undefined {
-  for (const s of settlements.values()) {
-    if (s.reportId === reportId) return s;
-  }
-  return undefined;
+): Promise<SettlementResult | undefined> {
+  const all = await redisGetAll<SettlementResult>(SETTLEMENT_PREFIX + "*");
+  return all.find((s) => s.reportId === reportId);
 }
 
-export function getAllSettlements(): SettlementResult[] {
-  return Array.from(settlements.values());
+export async function getAllSettlements(): Promise<SettlementResult[]> {
+  return redisGetAll<SettlementResult>(SETTLEMENT_PREFIX + "*");
 }
 
-export function storeFulfillment(
+export async function storeFulfillment(
   ownerAddress: string,
   sequence: number,
   fulfillment: string
-): void {
-  fulfillments.set(`${ownerAddress}:${sequence}`, fulfillment);
+): Promise<void> {
+  await redisSet(FULFILLMENT_PREFIX + `${ownerAddress}:${sequence}`, fulfillment);
 }
 
-export function getFulfillment(
+export async function getFulfillment(
   ownerAddress: string,
   sequence: number
-): string | undefined {
-  return fulfillments.get(`${ownerAddress}:${sequence}`);
+): Promise<string | undefined> {
+  return redisGet<string>(FULFILLMENT_PREFIX + `${ownerAddress}:${sequence}`);
 }

@@ -9,7 +9,7 @@ export async function onScoreChange(
   oldScore: number,
   newScore: number
 ): Promise<void> {
-  const settlement = getSettlementByReport(reportId);
+  const settlement = await getSettlementByReport(reportId);
 
   if (!settlement) {
     // no on-chain settlement exists for this report, nothing to do
