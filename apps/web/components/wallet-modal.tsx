@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { X, Wallet } from "lucide-react";
+import { X, Wallet, Loader2 } from "lucide-react";
 
 interface WalletModalProps {
   open: boolean;
@@ -9,9 +9,12 @@ interface WalletModalProps {
   onConfirm: (address: string) => void;
 }
 
+const FAUCET_URL = "https://faucet.altnet.rippletest.net/accounts";
+
 export function WalletModal({ open, onClose, onConfirm }: WalletModalProps) {
   const [input, setInput] = useState("");
   const [error, setError] = useState("");
+  const [generating, setGenerating] = useState(false);
 
   if (!open) return null;
 
@@ -25,6 +28,28 @@ export function WalletModal({ open, onClose, onConfirm }: WalletModalProps) {
     setError("");
     onConfirm(addr);
     setInput("");
+  }
+
+  async function handleGenerate() {
+    setGenerating(true);
+    setError("");
+    try {
+      const res = await fetch(FAUCET_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+      });
+      if (!res.ok) throw new Error(`Faucet error (${res.status})`);
+      const data = await res.json();
+      const addr = data.account?.classicAddress || data.account?.address;
+      if (!addr) throw new Error("No address in faucet response");
+      // auto-fill and connect
+      setInput(addr);
+      onConfirm(addr);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to generate wallet");
+    } finally {
+      setGenerating(false);
+    }
   }
 
   return (
@@ -50,7 +75,7 @@ export function WalletModal({ open, onClose, onConfirm }: WalletModalProps) {
         </div>
 
         <p className="text-sm text-muted-foreground mb-5">
-          Paste your XRPL testnet address. This is where you&apos;ll receive MPT equity tokens when a round settles.
+          Paste your XRPL testnet address, or generate a free one instantly.
         </p>
 
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -70,23 +95,34 @@ export function WalletModal({ open, onClose, onConfirm }: WalletModalProps) {
             )}
           </div>
 
-          <p className="text-xs text-muted-foreground">
-            Don&apos;t have one?{" "}
-            <a
-              href="https://faucet.altnet.rippletest.net/"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="underline hover:text-foreground transition"
-            >
-              Get a free testnet wallet
-            </a>
-          </p>
-
           <button
             type="submit"
-            className="w-full py-3 bg-foreground text-background text-sm font-semibold hover:bg-foreground/90 transition-all"
+            disabled={!input.trim()}
+            className="w-full py-3 bg-foreground text-background text-sm font-semibold hover:bg-foreground/90 transition-all disabled:opacity-40 disabled:cursor-not-allowed"
           >
             Connect
+          </button>
+
+          <div className="relative flex items-center gap-3">
+            <div className="flex-1 h-px bg-foreground/10" />
+            <span className="text-xs text-muted-foreground">or</span>
+            <div className="flex-1 h-px bg-foreground/10" />
+          </div>
+
+          <button
+            type="button"
+            onClick={handleGenerate}
+            disabled={generating}
+            className="w-full py-3 border border-foreground/20 text-sm font-semibold hover:bg-foreground/5 transition-all disabled:opacity-60 flex items-center justify-center gap-2"
+          >
+            {generating ? (
+              <>
+                <Loader2 className="w-4 h-4 animate-spin" />
+                Generating wallet...
+              </>
+            ) : (
+              "Generate free testnet wallet"
+            )}
           </button>
         </form>
       </div>
