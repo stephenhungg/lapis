@@ -308,12 +308,21 @@ export default function EquityPage() {
     return () => { cancelled = true; };
   }, [wallet.connected]);
 
-  const walletEntries = status?.wallets
-    ? Object.entries(status.wallets).filter(
-        (entry): entry is [string, { address: string; balanceXRP: string; balanceRLUSD: string }] =>
-          "address" in entry[1]
+  // Filter settlements to only show ones where the user's wallet is a participant
+  const userSettlements = status?.settlements.filter((s) =>
+    s.escrows.some((e) => e.xrplAddress === wallet.address)
+  ) ?? [];
+
+  // Also show all settlements if user is the founder or agent
+  const isOperator = status?.wallets
+    ? Object.values(status.wallets).some(
+        (w) => "address" in w && w.address === wallet.address
       )
-    : [];
+    : false;
+
+  const visibleSettlements = isOperator
+    ? (status?.settlements ?? [])
+    : userSettlements;
 
   return (
     <div className="min-h-screen bg-background relative overflow-hidden">
@@ -399,7 +408,7 @@ export default function EquityPage() {
           <div className={`space-y-6 transition-all duration-500 delay-100 ${
             isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"
           }`}>
-            {/* Network status bar */}
+            {/* Wallet status bar */}
             <div className="border border-foreground/10 p-4">
               <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-xs">
                 <div className="flex items-center gap-2">
@@ -407,31 +416,30 @@ export default function EquityPage() {
                   <span className="text-muted-foreground">Network</span>
                   <span className="font-mono font-bold">{status.network}</span>
                 </div>
-                {walletEntries.map(([name, wallet]) => (
-                  <div key={name} className="flex items-center gap-2">
-                    <span className="text-muted-foreground capitalize">{name}</span>
-                    <span className="font-mono">{truncate(wallet.address)}</span>
-                    <span className="font-mono text-muted-foreground">
-                      {wallet.balanceXRP} XRP
-                    </span>
-                    {wallet.balanceRLUSD !== "0" && wallet.balanceRLUSD !== "N/A" && (
-                      <span className="font-mono text-muted-foreground">
-                        {wallet.balanceRLUSD} RLUSD
-                      </span>
-                    )}
-                  </div>
-                ))}
+                <div className="flex items-center gap-2">
+                  <span className="text-muted-foreground">Your wallet</span>
+                  <span className="font-mono">{truncate(wallet.address!)}</span>
+                  <button
+                    onClick={wallet.disconnect}
+                    className="text-muted-foreground/50 hover:text-foreground transition-colors underline"
+                  >
+                    disconnect
+                  </button>
+                </div>
               </div>
             </div>
 
             {/* Settlement cards */}
-            {status.settlements.length > 0 ? (
+            {visibleSettlements.length > 0 ? (
               <section>
                 <h2 className="text-sm font-semibold mb-3 text-muted-foreground">
-                  Settlements
+                  {isOperator ? "All settlements" : "Your settlements"}
+                  <span className="ml-2 text-xs font-mono text-muted-foreground/60">
+                    {visibleSettlements.length}
+                  </span>
                 </h2>
                 <div className="space-y-4">
-                  {status.settlements.map((settlement) => (
+                  {visibleSettlements.map((settlement) => (
                     <SettlementCard key={settlement.marketId} settlement={settlement} />
                   ))}
                 </div>
@@ -439,15 +447,19 @@ export default function EquityPage() {
             ) : (
               <div className="border border-dashed border-foreground/20 p-16 text-center">
                 <Coins className="w-10 h-10 text-muted-foreground/50 mx-auto mb-4" />
-                <h2 className="text-xl font-display mb-2">No settlements yet</h2>
+                <h2 className="text-xl font-display mb-2">
+                  {isOperator ? "No settlements yet" : "No equity found"}
+                </h2>
                 <p className="text-sm text-muted-foreground mb-6 max-w-md mx-auto">
-                  Analyze a repo, open a market, and settle to see equity tokens here.
+                  {isOperator
+                    ? "Analyze a repo, open a market, and settle to see equity tokens here."
+                    : "No settlements found for your wallet. Place bets on open markets to earn equity tokens when they settle."}
                 </p>
                 <Link
-                  href="/dashboard"
+                  href={isOperator ? "/dashboard" : "/list"}
                   className="px-8 py-2.5 bg-foreground text-background text-sm font-semibold hover:bg-foreground/90 transition-all"
                 >
-                  Go to dashboard
+                  {isOperator ? "Go to dashboard" : "Browse markets"}
                 </Link>
               </div>
             )}
