@@ -19,6 +19,22 @@ class ApiError extends Error {
   }
 }
 
+export interface PaymentDetails {
+  destination: string;
+  amountXRP: string;
+  network: string;
+  instructions: string;
+}
+
+class PaywallError extends ApiError {
+  paymentDetails: PaymentDetails;
+  constructor(message: string, paymentDetails: PaymentDetails) {
+    super(message, 402);
+    this.name = "PaywallError";
+    this.paymentDetails = paymentDetails;
+  }
+}
+
 async function request<T>(path: string, options?: RequestInit): Promise<T> {
   const res = await fetch(`${API_BASE}${path}`, {
     headers: { "Content-Type": "application/json" },
@@ -28,6 +44,9 @@ async function request<T>(path: string, options?: RequestInit): Promise<T> {
   const json = await res.json();
 
   if (!json.success) {
+    if (res.status === 402 && json.paymentDetails) {
+      throw new PaywallError(json.error || "Payment required", json.paymentDetails);
+    }
     throw new ApiError(json.error || "API error", res.status);
   }
 
@@ -61,6 +80,18 @@ export async function pollScore(
 
 export async function getReport(reportId: string): Promise<ReportCard> {
   return request(`/report/${reportId}`);
+}
+
+export async function getReportWithPayment(
+  reportId: string,
+  txHash: string
+): Promise<ReportCard> {
+  return request(`/report/${reportId}`, {
+    headers: {
+      "Content-Type": "application/json",
+      "X-Payment-TxHash": txHash,
+    },
+  });
 }
 
 // ==========================================
@@ -109,27 +140,6 @@ export async function getXrplStatus(): Promise<XrplStatus> {
   return request("/xrpl/status");
 }
 
-export interface SAFEStatus {
-  contractAddress: string;
-  documentHash: string;
-  deployTxHash: string;
-  linkTxHash: string | null;
-  settleTxHash: string | null;
-  baseSepoliaExplorerUrl: string;
-  documentPreview: string;
-  onChainStatus?: {
-    status: string;
-    mptIssuanceId: string;
-    documentHash: string;
-  };
-  xrplMptIssuanceId?: string;
-  crossChainVerified?: boolean;
-}
-
-export async function getSafe(marketId: string): Promise<SAFEStatus> {
-  return request(`/safe/${marketId}`);
-}
-
 // ==========================================
 // MONITORING
 // ==========================================
@@ -167,4 +177,4 @@ export function getUserId(): string {
   return id;
 }
 
-export { ApiError };
+export { ApiError, PaywallError };

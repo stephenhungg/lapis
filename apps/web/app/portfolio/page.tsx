@@ -16,6 +16,8 @@ export default function PortfolioPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [mpts, setMpts] = useState<PortfolioMPT[]>([]);
+  const [walletAddress, setWalletAddress] = useState<string | null>(null);
+  const [xrplConfigured, setXrplConfigured] = useState<boolean | null>(null);
 
   useEffect(() => {
     setIsVisible(true);
@@ -32,6 +34,19 @@ export default function PortfolioPage() {
     getXrplStatus()
       .then((status) => {
         if (cancelled) return;
+        setXrplConfigured(status.configured);
+        if (!status.configured) {
+          setMpts([]);
+          setWalletAddress(null);
+          return;
+        }
+        // Extract the first valid wallet address to display
+        const walletEntries = Object.values(status.wallets ?? {});
+        const firstValid = walletEntries.find(
+          (w): w is { address: string; balanceXRP: string; balanceRLUSD: string } =>
+            "address" in w
+        );
+        setWalletAddress(firstValid?.address ?? null);
         const adapted = status.settlements.map(adaptSettlementToMPT);
         setMpts(adapted);
       })
@@ -83,7 +98,11 @@ export default function PortfolioPage() {
             }`}
           >
             <Wallet className="w-4 h-4" />
-            {connected ? "r4xK9…F2mP" : "Connect wallet to view"}
+            {connected
+              ? walletAddress
+                ? `${walletAddress.slice(0, 5)}…${walletAddress.slice(-4)}`
+                : "Connected"
+              : "Connect wallet to view"}
           </button>
         </div>
 
@@ -109,6 +128,17 @@ export default function PortfolioPage() {
           }`}>
             <Loader2 className="w-8 h-8 text-muted-foreground mx-auto mb-4 animate-spin" />
             <p className="text-sm text-muted-foreground">Loading portfolio from XRPL...</p>
+          </div>
+        ) : xrplConfigured === false ? (
+          <div className={`border border-dashed border-foreground/20 p-16 text-center transition-all duration-500 delay-100 ${
+            isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"
+          }`}>
+            <Wallet className="w-10 h-10 text-muted-foreground mx-auto mb-4" />
+            <h2 className="text-xl font-display mb-2">XRPL wallets not configured</h2>
+            <p className="text-sm text-muted-foreground max-w-sm mx-auto">
+              The backend does not have XRPL wallet seeds configured. Set FOUNDER_SEED and AGENT_SEED
+              environment variables to enable portfolio tracking.
+            </p>
           </div>
         ) : (
           <div className={`space-y-8 transition-all duration-500 delay-100 ${

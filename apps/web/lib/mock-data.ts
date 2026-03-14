@@ -222,65 +222,8 @@ export const STARTUPS: Startup[] = [
   },
 ];
 
-export const LIVE_ANALYZING = [
-  { id: "a1", repo: "github.com/acmecorp/saas-kit", progress: 67, step: "Analyzing traction signals..." },
-  { id: "a2", repo: "github.com/bonsai/payments-api", progress: 34, step: "Scanning commit history..." },
-  { id: "a3", repo: "github.com/datalake/streamkit", progress: 89, step: "Generating report card..." },
-];
-
-export const RECENT_SAFES = [
-  { id: "stackFlow", name: "StackFlow", cap: 14500000, equity: 6, closed: "2h ago", investors: 41, mpt: "rSFLW9K..." },
-  { id: "devops-relay", name: "DevOps Relay", cap: 7200000, equity: 7.5, closed: "1d ago", investors: 28, mpt: "rDVRP8A..." },
-  { id: "mesh-protocol", name: "Mesh Protocol", cap: 3800000, equity: 12, closed: "3d ago", investors: 19, mpt: "rMSHP3F..." },
-];
-
-export const PORTFOLIO_POSITIONS = [
-  {
-    id: "neuralEdge",
-    name: "NeuralEdge",
-    type: "bet" as const,
-    direction: "above" as const,
-    betAmount: 50,
-    betValuation: 9000000,
-    currentValuation: 8200000,
-    pnl: -12.4,
-    status: "active",
-  },
-  {
-    id: "stackFlow",
-    name: "StackFlow",
-    type: "bet" as const,
-    direction: "above" as const,
-    betAmount: 80,
-    betValuation: 13000000,
-    currentValuation: 14500000,
-    pnl: 28.7,
-    status: "settled",
-  },
-];
-
-export const PORTFOLIO_MPTS = [
-  {
-    id: "stackFlow",
-    name: "StackFlow",
-    ticker: "SFLW",
-    mptAddress: "rSFLW9K2A1D3B5E6F7G8...",
-    valuationCap: 14500000,
-    equity: 6,
-    tokensHeld: 120,
-    escrowStatus: "active",
-    vestingCliff: "12 months",
-    vestingTotal: "4 years",
-    safeDeployed: "Base Mainnet",
-  },
-];
-
 export function fmt(n: number): string {
   if (n >= 1_000_000) return `$${(n / 1_000_000).toFixed(1)}M`;
   if (n >= 1_000) return `$${(n / 1_000).toFixed(0)}K`;
   return `$${n}`;
-}
-
-export function fmtDelta(n: number): string {
-  return n >= 0 ? `+${n.toFixed(1)}%` : `${n.toFixed(1)}%`;
 }

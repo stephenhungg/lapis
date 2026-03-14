@@ -14,7 +14,9 @@ import { DashboardNav } from "@/components/dashboard/nav";
 import { fmt } from "@/lib/mock-data";
 import type { Startup } from "@/lib/mock-data";
 import type { ReportCard } from "@/lib/api-types";
-import { getReport } from "@/lib/api";
+import { getReport, getReportWithPayment, pollScore, PaywallError } from "@/lib/api";
+import type { PaymentDetails } from "@/lib/api";
+import type { ReportScores } from "@/lib/api-types";
 import { adaptReportToStartup } from "@/lib/adapters";
 
 const PIE_COLORS = ["#1a1a1a", "#555", "#999", "#ccc"];
@@ -38,6 +40,10 @@ export default function ReportPage({ params }: { params: Promise<{ id: string }>
   const [unlocked, setUnlocked] = useState(false);
   const [paying, setPaying] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [paymentDetails, setPaymentDetails] = useState<PaymentDetails | null>(null);
+  const [txHash, setTxHash] = useState("");
+  const [payError, setPayError] = useState<string | null>(null);
+  const [scores, setScores] = useState<ReportScores | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -49,10 +55,22 @@ export default function ReportPage({ params }: { params: Promise<{ id: string }>
         if (cancelled) return;
         setReport(r);
         setStartup(adaptReportToStartup(r));
+        setUnlocked(true);
       })
       .catch((err) => {
         if (cancelled) return;
-        setError(err.message || "Failed to load report");
+        if (err instanceof PaywallError) {
+          setPaymentDetails(err.paymentDetails);
+          // Fetch the free scores endpoint so we can show them above the paywall
+          pollScore(id)
+            .then((result) => {
+              if (cancelled) return;
+              if (result.scores) setScores(result.scores);
+            })
+            .catch(() => { /* scores are best-effort */ });
+        } else {
+          setError(err.message || "Failed to load report");
+        }
       })
       .finally(() => {
         if (!cancelled) setLoading(false);
@@ -62,11 +80,26 @@ export default function ReportPage({ params }: { params: Promise<{ id: string }>
   }, [id]);
 
   function handleUnlock() {
+    if (!txHash.trim()) {
+      setPayError("Please enter your XRPL transaction hash.");
+      return;
+    }
     setPaying(true);
-    setTimeout(() => {
-      setPaying(false);
-      setUnlocked(true);
-    }, 1800);
+    setPayError(null);
+
+    getReportWithPayment(id, txHash.trim())
+      .then((r) => {
+        setReport(r);
+        setStartup(adaptReportToStartup(r));
+        setUnlocked(true);
+        setPaymentDetails(null);
+      })
+      .catch((err) => {
+        setPayError(err.message || "Payment verification failed. Check your tx hash and try again.");
+      })
+      .finally(() => {
+        setPaying(false);
+      });
   }
 
   function handleCopy() {
@@ -88,8 +121,8 @@ export default function ReportPage({ params }: { params: Promise<{ id: string }>
     );
   }
 
-  // Error state
-  if (error || !startup || !report) {
+  // Error state (but not paywall — paywall is handled below)
+  if (error || (!startup && !report && !paymentDetails)) {
     return (
       <div className="min-h-screen bg-background">
         <DashboardNav />
@@ -103,6 +136,129 @@ export default function ReportPage({ params }: { params: Promise<{ id: string }>
       </div>
     );
   }
+
+  // Paywall state — show scores (if available) + payment instructions
+  if (paymentDetails && !unlocked) {
+    return (
+      <div className="min-h-screen bg-background">
+        <DashboardNav />
+        <div className="max-w-5xl mx-auto px-6 pt-36 pb-8">
+          {/* Breadcrumb */}
+          <div className="flex items-center gap-2 text-sm text-muted-foreground mb-6">
+            <Link href="/" className="hover:text-foreground transition-colors">Markets</Link>
+            <span>/</span>
+            <span className="text-foreground">Full report</span>
+          </div>
+
+          <h1 className="text-3xl font-display mb-1">AI Report</h1>
+          <p className="text-sm text-muted-foreground mb-8">
+            Payment required to access the full report.
+          </p>
+
+          {/* Scores preview (free) */}
+          {scores && (
+            <div className="grid sm:grid-cols-5 gap-3 mb-8">
+              {[
+                { label: "Overall", value: scores.overall },
+                { label: "Code", value: scores.codeQuality },
+                { label: "Team", value: scores.teamStrength },
+                { label: "Traction", value: scores.traction },
+                { label: "Social", value: scores.socialPresence },
+              ].map((s) => (
+                <div key={s.label} className="border border-foreground/10 p-4 text-center">
+                  <p className="text-3xl font-display mb-1">{s.value}</p>
+                  <p className="text-xs text-muted-foreground">{s.label}</p>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* Paywall card */}
+          <div className="relative border border-foreground/20 overflow-hidden">
+            {/* Blurred preview */}
+            <div className="blur-sm pointer-events-none select-none p-6 space-y-6 opacity-60">
+              <div className="h-48 bg-foreground/5 rounded" />
+              <div className="h-48 bg-foreground/5 rounded" />
+              <div className="h-32 bg-foreground/5 rounded" />
+            </div>
+
+            {/* Paywall overlay */}
+            <div className="absolute inset-0 flex flex-col items-center justify-center bg-background/90 backdrop-blur-sm p-8 text-center">
+              <Lock className="w-8 h-8 text-muted-foreground mb-4" />
+              <h3 className="text-xl font-display mb-2">
+                Full report — {paymentDetails.amountXRP} XRP
+              </h3>
+              <p className="text-sm text-muted-foreground mb-4 max-w-md">
+                {paymentDetails.instructions || "Send the exact amount to the address below, then paste your transaction hash to unlock."}
+              </p>
+
+              {/* Payment details */}
+              <div className="bg-foreground/5 border border-foreground/10 p-4 mb-4 text-left w-full max-w-md space-y-2">
+                <div>
+                  <p className="text-[10px] uppercase font-mono text-muted-foreground mb-0.5">Destination address</p>
+                  <p className="text-xs font-mono break-all select-all">{paymentDetails.destination}</p>
+                </div>
+                <div>
+                  <p className="text-[10px] uppercase font-mono text-muted-foreground mb-0.5">Amount</p>
+                  <p className="text-xs font-mono">{paymentDetails.amountXRP} XRP</p>
+                </div>
+                <div>
+                  <p className="text-[10px] uppercase font-mono text-muted-foreground mb-0.5">Network</p>
+                  <p className="text-xs font-mono">{paymentDetails.network}</p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-4 mb-4 text-xs text-muted-foreground">
+                {["GitHub activity charts", "Contributor breakdown", "Adversarial audit full findings", "Social metrics over time"].map((item) => (
+                  <div key={item} className="flex items-center gap-1">
+                    <Check className="w-3 h-3 text-green-500" />
+                    {item}
+                  </div>
+                ))}
+              </div>
+
+              {/* Tx hash input */}
+              <div className="w-full max-w-md mb-3">
+                <input
+                  type="text"
+                  value={txHash}
+                  onChange={(e) => setTxHash(e.target.value)}
+                  placeholder="Paste XRPL transaction hash..."
+                  className="w-full px-4 py-2.5 border border-foreground/20 bg-background text-sm font-mono placeholder:text-muted-foreground/50 focus:outline-none focus:border-foreground/40 transition-colors"
+                />
+              </div>
+
+              {payError && (
+                <p className="text-xs text-red-500 mb-3">{payError}</p>
+              )}
+
+              <button
+                onClick={handleUnlock}
+                disabled={paying}
+                className="px-8 py-3 bg-foreground text-background text-sm font-bold hover:bg-foreground/90 transition-colors disabled:opacity-60 flex items-center gap-2"
+              >
+                {paying ? (
+                  <>
+                    <div className="w-3.5 h-3.5 border-2 border-background/40 border-t-background rounded-full animate-spin" />
+                    Verifying payment...
+                  </>
+                ) : (
+                  "Verify & Unlock"
+                )}
+              </button>
+              <p className="text-xs text-muted-foreground mt-3 font-mono">
+                Paid via XRPL · {paymentDetails.amountXRP} XRP · instant access after verification
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // At this point, both startup and report are guaranteed to exist
+  // (loading, error, and paywall states are handled above)
+  if (!startup || !report) return null;
 
   // Build chart data from real sources
   const langData = Object.entries(startup.languages).map(([name, pct]) => ({
@@ -218,55 +374,8 @@ export default function ReportPage({ params }: { params: Promise<{ id: string }>
           </p>
         </div>
 
-        {/* PAYWALL */}
-        {!unlocked ? (
-          <div className="relative border border-foreground/20 overflow-hidden">
-            {/* Blurred preview */}
-            <div className="blur-sm pointer-events-none select-none p-6 space-y-6 opacity-60">
-              <div className="h-48 bg-foreground/5 rounded" />
-              <div className="h-48 bg-foreground/5 rounded" />
-              <div className="h-32 bg-foreground/5 rounded" />
-            </div>
-
-            {/* Paywall overlay */}
-            <div className="absolute inset-0 flex flex-col items-center justify-center bg-background/90 backdrop-blur-sm p-8 text-center">
-              <Lock className="w-8 h-8 text-muted-foreground mb-4" />
-              <h3 className="text-xl font-display mb-2">Full report — 0.05 XRP</h3>
-              <p className="text-sm text-muted-foreground mb-6 max-w-sm">
-                Pay once via XRPL to unlock the complete deep-dive: commit charts, contributor breakdown,
-                language distribution, social growth, adversarial audit, and full reasoning.
-              </p>
-              <div className="flex items-center gap-4 mb-6 text-xs text-muted-foreground">
-                {["GitHub activity charts", "Contributor breakdown", "Adversarial audit full findings", "Social metrics over time"].map((item) => (
-                  <div key={item} className="flex items-center gap-1">
-                    <Check className="w-3 h-3 text-green-500" />
-                    {item}
-                  </div>
-                ))}
-              </div>
-              <button
-                onClick={handleUnlock}
-                disabled={paying}
-                className="px-8 py-3 bg-foreground text-background text-sm font-bold hover:bg-foreground/90 transition-colors disabled:opacity-60 flex items-center gap-2"
-              >
-                {paying ? (
-                  <>
-                    <div className="w-3.5 h-3.5 border-2 border-background/40 border-t-background rounded-full animate-spin" />
-                    Processing via XRPL...
-                  </>
-                ) : (
-                  "Unlock for $0.05 →"
-                )}
-              </button>
-              <p className="text-xs text-muted-foreground mt-3 font-mono">Paid via XRPL · 0.05 XRP · instant access</p>
-            </div>
-          </div>
-        ) : (
-          <div className="space-y-6">
-            <div className="flex items-center gap-2 bg-green-50 border border-green-200 px-4 py-2">
-              <Check className="w-4 h-4 text-green-500" />
-              <span className="text-sm text-green-700">Unlocked — 0.05 XRP paid via XRPL</span>
-            </div>
+        {/* Full report content (unlocked) */}
+        <div className="space-y-6">
 
             {/* GitHub activity */}
             <div className="border border-foreground/10 p-5">
@@ -434,7 +543,7 @@ export default function ReportPage({ params }: { params: Promise<{ id: string }>
               </button>
             </div>
           </div>
-        )}
+        </div>
       </div>
     </div>
   );

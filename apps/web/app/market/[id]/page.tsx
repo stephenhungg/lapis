@@ -670,7 +670,7 @@ export default function MarketPage({ params }: { params: Promise<{ id: string }>
                   <p>
                     {settlement?.safe?.contractAddress
                       ? `Deployed at ${settlement.safe.contractAddress.slice(0, 10)}... on Base Sepolia.`
-                      : "Legally binding SAFE deployed on Base via MetaLex. Conversion enforced on-chain."}
+                      : "SAFE not deployed (BASE_PRIVATE_KEY not configured)"}
                   </p>
                 </div>
                 <div>
@@ -680,7 +680,7 @@ export default function MarketPage({ params }: { params: Promise<{ id: string }>
               </div>
               {settlement?.explorerLinks && settlement.explorerLinks.length > 0 && (
                 <div className="mb-6">
-                  <p className="text-xs font-semibold text-foreground mb-2">Explorer links</p>
+                  <p className="text-xs font-semibold text-foreground mb-2">XRPL explorer links</p>
                   <div className="flex flex-wrap gap-2">
                     {settlement.explorerLinks.map((link, i) => (
                       <a
@@ -694,6 +694,19 @@ export default function MarketPage({ params }: { params: Promise<{ id: string }>
                       </a>
                     ))}
                   </div>
+                </div>
+              )}
+              {settlement?.safe?.baseSepoliaExplorerUrl && (
+                <div className="mb-6">
+                  <p className="text-xs font-semibold text-foreground mb-2">SAFE contract (Base Sepolia)</p>
+                  <a
+                    href={settlement.safe.baseSepoliaExplorerUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="text-xs text-blue-600 hover:text-blue-800 underline font-mono"
+                  >
+                    {settlement.safe.contractAddress}
+                  </a>
                 </div>
               )}
               <button
