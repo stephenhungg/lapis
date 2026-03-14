@@ -11,7 +11,7 @@ const footerLinks = {
   ],
   Developers: [
     { name: "Documentation", href: "https://lapis.mintlify.app/introduction" },
-    { name: "API Reference", href: "#developers" },
+    { name: "API Reference", href: "https://lapis.mintlify.app/api-reference/overview" },
   ],
   Team: [
     { name: "GitHub", href: "https://github.com/stephenhungg/babhacks" },
