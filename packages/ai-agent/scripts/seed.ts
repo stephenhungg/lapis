@@ -106,7 +106,9 @@ async function main() {
 
   // check server is up
   try {
-    await api<{ status: string }>("/health");
+    const res = await fetch(`${API}/health`);
+    const health = await res.json() as { status: string };
+    if (health.status !== "ok") throw new Error("bad health");
     console.log("  Server is running\n");
   } catch {
     console.error("  ERROR: Server not reachable at", API);
