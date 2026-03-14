@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Button } from "@/components/ui/button";
 import { Menu, X } from "lucide-react";
 
 const navLinks = [
@@ -64,22 +63,23 @@ export function Navigation() {
           </div>
 
           {/* Desktop CTA */}
-          <div className="hidden md:flex items-center gap-4">
+          <div className="hidden md:flex items-center gap-6">
             <a
               href="/demo"
-              className={`text-foreground/70 hover:text-foreground transition-all duration-500 ${isScrolled ? "text-xs" : "text-sm"}`}
+              className={`text-foreground/70 hover:text-foreground transition-all duration-300 relative group ${isScrolled ? "text-xs" : "text-sm"}`}
             >
               Demo
+              <span className="absolute -bottom-1 left-0 w-0 h-px bg-foreground transition-all duration-300 group-hover:w-full" />
             </a>
-            <Button
-              size="sm"
-              asChild
-              className={`bg-foreground hover:bg-foreground/90 text-background rounded-full transition-all duration-500 ${isScrolled ? "px-4 h-8 text-xs" : "px-6"}`}
+            <a
+              href="https://github.com/stephenhungg/babhacks"
+              target="_blank"
+              rel="noopener noreferrer"
+              className={`text-foreground/70 hover:text-foreground transition-all duration-300 relative group ${isScrolled ? "text-xs" : "text-sm"}`}
             >
-              <a href="https://github.com/stephenhungg/babhacks" target="_blank" rel="noopener noreferrer">
-                GitHub
-              </a>
-            </Button>
+              GitHub
+              <span className="absolute -bottom-1 left-0 w-0 h-px bg-foreground transition-all duration-300 group-hover:w-full" />
+            </a>
           </div>
 
           {/* Mobile Menu Button */}
@@ -135,21 +135,22 @@ export function Navigation() {
           }`}
           style={{ transitionDelay: isMobileMenuOpen ? "300ms" : "0ms" }}
           >
-            <Button
-              variant="outline"
-              className="flex-1 rounded-full h-14 text-base"
-              asChild
+            <a
+              href="/demo"
               onClick={() => setIsMobileMenuOpen(false)}
+              className="flex-1 flex items-center justify-center h-14 text-base border border-foreground/20 rounded-full hover:bg-foreground/5 transition-colors"
             >
-              <a href="/demo">Demo</a>
-            </Button>
-            <Button
-              className="flex-1 bg-foreground text-background rounded-full h-14 text-base"
-              asChild
+              Demo
+            </a>
+            <a
+              href="https://github.com/stephenhungg/babhacks"
+              target="_blank"
+              rel="noopener noreferrer"
               onClick={() => setIsMobileMenuOpen(false)}
+              className="flex-1 flex items-center justify-center h-14 text-base border border-foreground/20 rounded-full hover:bg-foreground/5 transition-colors"
             >
-              <a href="https://github.com/stephenhungg/babhacks" target="_blank" rel="noopener noreferrer">GitHub</a>
-            </Button>
+              GitHub
+            </a>
           </div>
         </div>
       </div>
