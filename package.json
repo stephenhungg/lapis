@@ -8,6 +8,8 @@
   "scripts": {
     "dev:agent": "npm run dev --workspace=packages/ai-agent",
     "build": "npm run build --workspace=packages/shared && npm run build --workspace=packages/xrpl-contracts && npm run build --workspace=packages/metalex && npm run build --workspace=packages/ai-agent",
+    "seed": "npm run seed --workspace=packages/ai-agent",
+    "seed:settle": "npm run seed --workspace=packages/ai-agent -- --settle",
     "lapis": "tsx packages/cli/src/index.ts"
   }
 }
