@@ -45,41 +45,35 @@ function AnimatedCounter({ end, suffix = "", prefix = "" }: { end: number; suffi
 }
 
 const metrics = [
-  { 
-    value: 8, 
-    suffix: "M", 
-    prefix: "$",
-    label: "Example crowd-priced valuation",
+  {
+    value: 60,
+    suffix: "s",
+    prefix: "<",
+    label: "Full startup analysis pipeline",
   },
-  { 
-    value: 100, 
-    suffix: "%", 
+  {
+    value: 4,
+    suffix: "",
     prefix: "",
-    label: "Founders scored publicly before raise",
+    label: "AI scoring dimensions, 100-point scale",
   },
-  { 
-    value: 15, 
-    suffix: "s", 
+  {
+    value: 3,
+    suffix: "",
     prefix: "",
-    label: "Time from headline to on-chain equity",
+    label: "XRPL native features (MPT, Escrows, RLUSD)",
   },
-  { 
-    value: 0, 
-    suffix: "", 
+  {
+    value: 14,
+    suffix: "+",
     prefix: "",
-    label: "VC partners involved in pricing",
+    label: "API endpoints for analysis and settlement",
   },
 ];
 
 export function MetricsSection() {
-  const [time, setTime] = useState(new Date());
   const [isVisible, setIsVisible] = useState(false);
   const sectionRef = useRef<HTMLElement>(null);
-
-  useEffect(() => {
-    const interval = setInterval(() => setTime(new Date()), 1000);
-    return () => clearInterval(interval);
-  }, []);
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -101,25 +95,23 @@ export function MetricsSection() {
           <div>
             <span className="inline-flex items-center gap-3 text-sm font-mono text-muted-foreground mb-6">
               <span className="w-8 h-px bg-foreground/30" />
-              Live metrics
+              Under the hood
             </span>
             <h2
               className={`text-4xl lg:text-6xl font-display tracking-tight transition-all duration-700 ${
                 isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"
               }`}
             >
-              Fundraising you
+              Built for
               <br />
-              can verify.
+              transparency.
             </h2>
           </div>
           <div className="flex items-center gap-4 font-mono text-sm text-muted-foreground">
             <span className="flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
-              Live
+              <span className="w-2 h-2 rounded-full bg-emerald-500" />
+              Production ready
             </span>
-            <span className="text-foreground/30">|</span>
-            <span>{time.toLocaleTimeString()}</span>
           </div>
         </div>
         

@@ -65,14 +65,20 @@ export function Navigation() {
 
           {/* Desktop CTA */}
           <div className="hidden md:flex items-center gap-4">
-            <a href="#" className={`text-foreground/70 hover:text-foreground transition-all duration-500 ${isScrolled ? "text-xs" : "text-sm"}`}>
-              Sign in
+            <a
+              href="/demo"
+              className={`text-foreground/70 hover:text-foreground transition-all duration-500 ${isScrolled ? "text-xs" : "text-sm"}`}
+            >
+              Demo
             </a>
             <Button
               size="sm"
+              asChild
               className={`bg-foreground hover:bg-foreground/90 text-background rounded-full transition-all duration-500 ${isScrolled ? "px-4 h-8 text-xs" : "px-6"}`}
             >
-              Start a round
+              <a href="https://github.com/stephenhungg/babhacks" target="_blank" rel="noopener noreferrer">
+                GitHub
+              </a>
             </Button>
           </div>
 
@@ -123,24 +129,26 @@ export function Navigation() {
           
           {/* Bottom CTAs */}
           <div className={`flex gap-4 pt-8 border-t border-foreground/10 transition-all duration-500 ${
-            isMobileMenuOpen 
-              ? "opacity-100 translate-y-0" 
+            isMobileMenuOpen
+              ? "opacity-100 translate-y-0"
               : "opacity-0 translate-y-4"
           }`}
           style={{ transitionDelay: isMobileMenuOpen ? "300ms" : "0ms" }}
           >
-            <Button 
-              variant="outline" 
+            <Button
+              variant="outline"
               className="flex-1 rounded-full h-14 text-base"
+              asChild
               onClick={() => setIsMobileMenuOpen(false)}
             >
-              Sign in
+              <a href="/demo">Demo</a>
             </Button>
-            <Button 
+            <Button
               className="flex-1 bg-foreground text-background rounded-full h-14 text-base"
+              asChild
               onClick={() => setIsMobileMenuOpen(false)}
             >
-              Start a round
+              <a href="https://github.com/stephenhungg/babhacks" target="_blank" rel="noopener noreferrer">GitHub</a>
             </Button>
           </div>
         </div>
