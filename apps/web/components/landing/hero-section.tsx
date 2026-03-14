@@ -153,7 +153,7 @@ export function HeroSection() {
                 { value: "3 steps", label: "to raise", company: "LAPIS" },
                 { value: "AI", label: "strips you naked", company: "DUE DILIGENCE" },
                 { value: "Crowd", label: "prices you", company: "PREDICTION MARKET" },
-                { value: "Protocol", label: "owns you", company: "ON-CHAIN EQUITY" },
+                { value: "You", label: "own equity", company: "ON-CHAIN EQUITY" },
               ].map((stat) => (
                 <div key={`${stat.company}-${i}`} className="flex items-baseline gap-4">
                   <span className="text-4xl lg:text-5xl font-display">{stat.value}</span>
