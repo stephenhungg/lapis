@@ -10,7 +10,7 @@ Low-level XRPL transaction builders. Stateless library consumed by ai-agent for 
 | `src/wallet.ts` | `generateWallet`, `walletFromSeed`, `walletFromEnv(prefix)`, `fundWallet` (testnet faucet) |
 | `src/mpt.ts` | MPTokenIssuanceCreate, authorizeHolder, holderOptIn, transferEquityShares, getMptHoldings |
 | `src/escrow.ts` | EscrowCreate/Finish/Cancel, generateCryptoCondition (PREIMAGE-SHA-256), time helpers |
-| `src/payments.ts` | XRP Payment, verifyPayment (for x402), createPaymentChannel |
+| `src/payments.ts` | XRP Payment, verifyPayment (for XRPL paywall), createPaymentChannel |
 | `src/types.ts` | Network configs, StartupRound, EquityToken, VestingEscrow, PaymentVerification |
 
 ## Key Patterns

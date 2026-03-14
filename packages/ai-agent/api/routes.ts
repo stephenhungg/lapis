@@ -31,6 +31,16 @@ import {
 } from "../src/xrpl/index.js";
 import type { SettlementResult } from "../src/xrpl/index.js";
 import { getRlusdBalance } from "../src/xrpl/rlusd.js";
+import {
+  sanitizeString,
+  validateGithubUrl,
+  validateTwitterHandle,
+  validateUserId,
+  validatePositiveNumber,
+  validateIntervalMs,
+  validateRouteId,
+  sendValidationError,
+} from "../src/middleware/validate.js";
 
 // sanitize settlement data for API responses (fulfillments are stored separately, not in the type)
 function sanitizeSettlement(s: SettlementResult): SettlementResult {
@@ -39,24 +49,27 @@ function sanitizeSettlement(s: SettlementResult): SettlementResult {
 
 export const router = Router();
 
-const GITHUB_URL_REGEX = /^https?:\/\/(www\.)?github\.com\/[\w.-]+\/[\w.-]+\/?$/;
-
 // ==========================================
 // ANALYSIS ROUTES
 // ==========================================
 
 // POST /analyze - submit a repo for analysis
 router.post("/analyze", async (req, res) => {
-  const { githubUrl, twitterHandle } = req.body as AnalyzeRequest;
+  const { githubUrl: rawUrl, twitterHandle: rawHandle } =
+    req.body as AnalyzeRequest;
 
-  if (!githubUrl || !GITHUB_URL_REGEX.test(githubUrl)) {
-    const response: ApiResponse<never> = {
-      success: false,
-      error: "Invalid or missing githubUrl. Expected: https://github.com/owner/repo",
-    };
-    res.status(400).json(response);
+  if (
+    sendValidationError(res, [
+      validateGithubUrl(rawUrl),
+      validateTwitterHandle(rawHandle),
+    ])
+  )
     return;
-  }
+
+  const githubUrl = sanitizeString(rawUrl, 500);
+  const twitterHandle = rawHandle
+    ? sanitizeString(rawHandle, 50)
+    : undefined;
 
   const report = await createReport(githubUrl);
 
@@ -72,6 +85,8 @@ router.post("/analyze", async (req, res) => {
 
 // GET /report/:id/score - free endpoint for polling status + scores
 router.get("/report/:id/score", async (req, res) => {
+  if (sendValidationError(res, [validateRouteId(req.params.id, "id")])) return;
+
   const report = await getReport(req.params.id);
 
   if (!report) {
@@ -102,6 +117,8 @@ router.get("/report/:id/score", async (req, res) => {
 
 // GET /report/:id - full report (behind XRPL paywall)
 router.get("/report/:id", async (req, res) => {
+  if (sendValidationError(res, [validateRouteId(req.params.id, "id")])) return;
+
   const report = await getReport(req.params.id);
 
   if (!report) {
@@ -126,6 +143,13 @@ router.get("/report/:id", async (req, res) => {
 
 // POST /market/:reportId - open a prediction market for a completed report
 router.post("/market/:reportId", async (req, res) => {
+  if (
+    sendValidationError(res, [
+      validateRouteId(req.params.reportId, "reportId"),
+    ])
+  )
+    return;
+
   const report = await getReport(req.params.reportId);
 
   if (!report) {
@@ -174,24 +198,23 @@ router.post("/market/:reportId", async (req, res) => {
 
 // POST /market/:marketId/bet - place a bet on a market
 router.post("/market/:marketId/bet", async (req, res) => {
-  const { userId, valuation, amount } = req.body as {
+  const { userId: rawUserId, valuation, amount } = req.body as {
     userId: string;
     valuation: number;
     amount: number;
   };
 
   if (
-    !userId ||
-    typeof valuation !== "number" || valuation <= 0 ||
-    typeof amount !== "number" || amount <= 0
-  ) {
-    const response: ApiResponse<never> = {
-      success: false,
-      error: "Invalid input. Required: userId (string), valuation (positive number, in millions), amount (positive number, in USD)",
-    };
-    res.status(400).json(response);
+    sendValidationError(res, [
+      validateRouteId(req.params.marketId, "marketId"),
+      validateUserId(rawUserId),
+      validatePositiveNumber(valuation, "valuation", 1_000_000),
+      validatePositiveNumber(amount, "amount", 1_000_000),
+    ])
+  )
     return;
-  }
+
+  const userId = sanitizeString(rawUserId, 100);
 
   try {
     const market = await placeBet(req.params.marketId, userId, valuation, amount);
@@ -211,6 +234,13 @@ router.post("/market/:marketId/bet", async (req, res) => {
 
 // POST /market/:marketId/close - close a market and finalize valuation
 router.post("/market/:marketId/close", async (req, res) => {
+  if (
+    sendValidationError(res, [
+      validateRouteId(req.params.marketId, "marketId"),
+    ])
+  )
+    return;
+
   try {
     const market = await closeMarket(req.params.marketId);
     const response: ApiResponse<ValuationMarket> = {
@@ -229,6 +259,13 @@ router.post("/market/:marketId/close", async (req, res) => {
 
 // GET /market/:marketId - get market data
 router.get("/market/:marketId", async (req, res) => {
+  if (
+    sendValidationError(res, [
+      validateRouteId(req.params.marketId, "marketId"),
+    ])
+  )
+    return;
+
   const market = await getMarketById(req.params.marketId);
 
   if (!market) {
@@ -253,6 +290,14 @@ router.get("/market/:marketId", async (req, res) => {
 
 // POST /monitor/:reportId - start continuously monitoring a repo
 router.post("/monitor/:reportId", async (req, res) => {
+  if (
+    sendValidationError(res, [
+      validateRouteId(req.params.reportId, "reportId"),
+      validateIntervalMs(req.body?.intervalMs),
+    ])
+  )
+    return;
+
   const report = await getReport(req.params.reportId);
 
   if (!report) {
@@ -273,7 +318,7 @@ router.post("/monitor/:reportId", async (req, res) => {
     return;
   }
 
-  const intervalMs = Math.max(10_000, req.body?.intervalMs ?? 30_000);
+  const intervalMs = req.body?.intervalMs ?? 30_000;
   const entry = await startMonitoring(report.id, report.githubUrl, intervalMs);
 
   const response: ApiResponse<{
@@ -295,6 +340,13 @@ router.post("/monitor/:reportId", async (req, res) => {
 
 // DELETE /monitor/:reportId - stop monitoring a repo
 router.delete("/monitor/:reportId", (req, res) => {
+  if (
+    sendValidationError(res, [
+      validateRouteId(req.params.reportId, "reportId"),
+    ])
+  )
+    return;
+
   const stopped = stopMonitoring(req.params.reportId);
 
   if (!stopped) {
@@ -325,6 +377,13 @@ router.get("/monitor", (_req, res) => {
 
 // GET /monitor/:reportId - check if a repo is being monitored
 router.get("/monitor/:reportId", (req, res) => {
+  if (
+    sendValidationError(res, [
+      validateRouteId(req.params.reportId, "reportId"),
+    ])
+  )
+    return;
+
   const response: ApiResponse<{ monitoring: boolean }> = {
     success: true,
     data: { monitoring: isMonitoring(req.params.reportId) },
@@ -339,6 +398,13 @@ router.get("/monitor/:reportId", (req, res) => {
 // POST /market/:marketId/settle - close market AND settle on XRPL
 // This is the money route: issues MPT, creates escrows, pays RLUSD fee
 router.post("/market/:marketId/settle", async (req, res) => {
+  if (
+    sendValidationError(res, [
+      validateRouteId(req.params.marketId, "marketId"),
+    ])
+  )
+    return;
+
   // idempotency: return existing settlement if already settled
   const existingSettlement = await getSettlement(req.params.marketId);
   if (existingSettlement) {
@@ -471,6 +537,13 @@ router.get("/xrpl/status", async (_req, res) => {
 
 // POST /xrpl/escrow/:marketId/release - agent releases a participant's escrow
 router.post("/xrpl/escrow/:marketId/release", async (req, res) => {
+  if (
+    sendValidationError(res, [
+      validateRouteId(req.params.marketId, "marketId"),
+    ])
+  )
+    return;
+
   // auth check: require AGENT_API_SECRET as bearer token (NOT the wallet seed)
   const apiSecret = process.env.AGENT_API_SECRET;
   const authHeader = req.headers.authorization;
@@ -487,16 +560,11 @@ router.post("/xrpl/escrow/:marketId/release", async (req, res) => {
     return;
   }
 
-  const { userId } = req.body as { userId: string };
+  const { userId: rawUserId } = req.body as { userId: string };
 
-  if (!userId) {
-    const response: ApiResponse<never> = {
-      success: false,
-      error: "userId is required",
-    };
-    res.status(400).json(response);
-    return;
-  }
+  if (sendValidationError(res, [validateUserId(rawUserId)])) return;
+
+  const userId = sanitizeString(rawUserId, 100);
 
   const settlement = await getSettlement(req.params.marketId);
   if (!settlement) {
@@ -565,6 +633,13 @@ router.post("/xrpl/escrow/:marketId/release", async (req, res) => {
 // ==========================================
 
 router.get("/safe/:marketId", async (req, res) => {
+  if (
+    sendValidationError(res, [
+      validateRouteId(req.params.marketId, "marketId"),
+    ])
+  )
+    return;
+
   const settlement = await getSettlement(req.params.marketId);
   if (!settlement) {
     const response: ApiResponse<null> = {

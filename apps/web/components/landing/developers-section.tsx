@@ -44,8 +44,8 @@ const features = [
     description: "One-click legal wrapper on Base."
   },
   { 
-    title: "x402 payments", 
-    description: "$0.05 per report card access."
+    title: "XRP micropayments",
+    description: "0.05 XRP per report card access via XRPL."
   },
   { 
     title: "Live repricing", 

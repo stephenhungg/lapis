@@ -6,7 +6,7 @@ Express server (port 3001) that orchestrates the full Lapis pipeline: scrape -> 
 
 | File | Purpose |
 |------|---------|
-| `src/server.ts` | Entry point. Loads .env, wires cors + json + x402 middleware + router |
+| `src/server.ts` | Entry point. Loads .env, wires cors + json + XRPL paywall middleware + router |
 | `src/pipeline.ts` | Orchestrates scrape -> analyze -> audit. Fire-and-forget from route handler |
 | `src/store.ts` | In-memory Map for ReportCard objects. createReport, getReport, updateReport |
 | `src/monitor.ts` | setInterval polling loop. Re-scrapes, re-analyzes, auto-adjusts market bets on changes |
@@ -17,7 +17,7 @@ Express server (port 3001) that orchestrates the full Lapis pipeline: scrape -> 
 | `src/polymarket/market.ts` | Local prediction market (Map). createMarket, placeBet, closeMarket, estimateValuation |
 | `src/scrapers/github.ts` | Octokit scraper. Parallel: repo, languages, commits, contributors, CI check |
 | `src/scrapers/social.ts` | Mock social data. Deterministic output seeded by handle hash |
-| `src/x402/middleware.ts` | x402-express paywall. Dynamic import, graceful fallback if not configured |
+| `src/xrpl/paywall.ts` | XRPL micropayment paywall. Verifies XRP payment via on-chain tx hash, caches verified hashes |
 | `src/xrpl/settle.ts` | Core settlement: market close -> MPT issuance -> escrows -> RLUSD. Has mutex lock |
 | `src/xrpl/rlusd.ts` | RLUSD trust line setup + issued currency payment helpers |
 | `src/xrpl/store.ts` | In-memory settlement + fulfillment (crypto-condition) storage |

@@ -6,11 +6,10 @@ const integrations = [
   { name: "XRPL", category: "On-Chain Equity" },
   { name: "MetaLex", category: "Legal Anchor" },
   { name: "Polymarket", category: "Crowd Pricing" },
-  { name: "Base", category: "SAFE Deployment" },
   { name: "GitHub", category: "Code Analysis" },
   { name: "Stripe", category: "Revenue Data" },
   { name: "RLUSD", category: "Stablecoin" },
-  { name: "x402", category: "Micropayments" },
+  { name: "XRP Pay", category: "Micropayments" },
 ];
 
 export function IntegrationsSection() {
@@ -49,7 +48,7 @@ export function IntegrationsSection() {
             layer of the stack.
           </h2>
           <p className="text-xl text-muted-foreground">
-            XRPL, Base, MetaLex, GitHub, Stripe, Polymarket, x402, RLUSD. The whole raise, connected.
+            XRPL, MetaLex, GitHub, Stripe, Polymarket, RLUSD. The whole raise, connected.
           </p>
         </div>
 

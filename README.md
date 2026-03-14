@@ -78,8 +78,7 @@ lapis/
         analysis/        # Claude API scoring + adversarial audit
         polymarket/      # Polymarket sentiment + local prediction market
         scrapers/        # GitHub (Octokit) + social (mock)
-        x402/            # Payment protocol middleware
-        xrpl/            # On-chain settlement (MPT, escrows, RLUSD)
+        xrpl/            # On-chain settlement + micropayment paywall
       api/routes.ts      # All endpoints
     xrpl-contracts/      # XRPL primitives (MPT, escrow, payments)
       src/
@@ -99,12 +98,11 @@ lapis/
 - Octokit (GitHub REST API)
 - xrpl.js v4 (XRPL WebSocket)
 - Polymarket Gamma API
-- x402 payment protocol
 - Next.js (frontend)
 
 ## Hackathon Tracks
 
-- **Ripple** -- XRPL native features: MPT equity tokens, vesting escrows with crypto-conditions, RLUSD stablecoin
+- **Ripple** -- XRPL native features: MPT equity tokens, vesting escrows with crypto-conditions, RLUSD stablecoin, XRP micropayment paywall
 - **Polymarket** -- Real market sentiment data influencing AI analysis
 - **Best Overall** -- Full-stack AI agent with agentic monitoring loop
 

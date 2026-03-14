@@ -66,7 +66,6 @@ npm run dev:agent  # runs tsx watch on ai-agent (no build needed for dev)
 | `AGENT_SEED` | for XRPL | AI agent's XRPL wallet (receives fees, releases escrows) |
 | `XRPL_NETWORK` | no | testnet (default), devnet, mainnet |
 | `RLUSD_ISSUER` | no | RLUSD issuer address (has default) |
-| `X402_WALLET_ADDRESS` | no | Enables x402 paywall on GET /report/:id |
 | `CLAUDE_MODEL` | no | Override Claude model (default: claude-sonnet-4-20250514) |
 
 ### packages/xrpl-contracts/.env
@@ -84,7 +83,7 @@ Generate XRPL testnet wallets: `cd packages/xrpl-contracts && npm run setup`
 |--------|------|-------------|
 | POST | /analyze | Submit GitHub URL for AI analysis |
 | GET | /report/:id/score | Poll analysis status + scores (free) |
-| GET | /report/:id | Full report card (x402 paywalled) |
+| GET | /report/:id | Full report card (XRPL paywalled — send 0.05 XRP, include tx hash in X-Payment-TxHash header) |
 | POST | /market/:reportId | Open prediction market for a report |
 | POST | /market/:id/bet | Place a valuation bet |
 | POST | /market/:id/close | Close market, finalize consensus |

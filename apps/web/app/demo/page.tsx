@@ -248,7 +248,7 @@ export default function DemoPage() {
                 <span className="text-xs font-semibold text-green-700 bg-green-50 border border-green-100 px-2.5 py-1">
                   Analysis Complete
                 </span>
-                <span className="text-xs text-gray-400">$0.05 via x402</span>
+                <span className="text-xs text-gray-400">0.05 XRP via XRPL</span>
               </div>
               <h1 className="text-2xl font-bold text-gray-950 mb-7">Startup Report Card</h1>
               <div className="space-y-4 mb-7">

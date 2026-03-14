@@ -52,7 +52,7 @@ async function main() {
   console.log(`Investor1: ${i1b} XRP`)
   console.log(`Investor2: ${i2b} XRP`)
 
-  separator("STEP 2 — x402 micropayment ($0.05 report access)")
+  separator("STEP 2 — XRPL micropayment (0.05 XRP report access)")
 
   const paymentHash = await sendPayment(investor1, {
     destination: founder.address,

@@ -4,7 +4,7 @@ import { redisGet, redisSet } from "./redis.js";
 
 const REPORT_PREFIX = "report:";
 
-export function createReport(githubUrl: string): ReportCard {
+export async function createReport(githubUrl: string): Promise<ReportCard> {
   const report: ReportCard = {
     id: uuidv4(),
     githubUrl,
@@ -20,8 +20,7 @@ export function createReport(githubUrl: string): ReportCard {
     completedAt: null,
     error: null,
   };
-  // fire-and-forget the async write -- caller doesn't await
-  redisSet(REPORT_PREFIX + report.id, report);
+  await redisSet(REPORT_PREFIX + report.id, report);
   return report;
 }
 

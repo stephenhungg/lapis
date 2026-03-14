@@ -17,7 +17,7 @@ npm run demo
 ```
 
 Runs the full flow end-to-end on testnet:
-1. Verifies x402 micropayment ($0.05 report access)
+1. Verifies XRPL micropayment (0.05 XRP report access)
 2. Issues equity MPT with royalty flags
 3. Authorizes investors, transfers shares
 4. Locks shares in vesting escrow (30s cliff in demo mode)
@@ -32,7 +32,7 @@ src/
   types.ts     — TypeScript interfaces
   mpt.ts       — equity token issuance + holder management
   escrow.ts    — vesting escrow create/release/cancel
-  payments.ts  — XRP payments + x402 verification
+  payments.ts  — XRP payments + XRPL paywall verification
 scripts/
   setup-testnet.ts   — fund wallets, write .env
   demo.ts            — full live demo
@@ -50,7 +50,7 @@ tests/
 | Royalties | `TransferFee` on MPT | Founder earns on secondary sales |
 | Vesting lock | `EscrowCreate` (MPT) | Shares locked until cliff/condition |
 | Trustee release | `EscrowFinish` | Agent submits when condition met |
-| Report access | `Payment` + `verifyPayment` | x402 micropayment verification |
+| Report access | `Payment` + `verifyPayment` | XRPL micropayment verification |
 
 ## Tests
 

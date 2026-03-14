@@ -88,7 +88,7 @@ export function FooterSection() {
           </p>
 
           <div className="flex items-center gap-4 text-sm text-muted-foreground">
-            <span>XRPL + Polymarket + x402</span>
+            <span>XRPL + Polymarket + RLUSD</span>
           </div>
         </div>
       </div>

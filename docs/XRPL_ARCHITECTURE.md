@@ -8,18 +8,22 @@ XRPL provides the equity and payment settlement layer for Lapis. Every financial
 
 ## How Each Platform Step Maps to XRPL
 
-### Step 1: AI Report Card Access ($0.05 via x402)
+### Step 1: AI Report Card Access (0.05 XRP via XRPL)
 
-**Primitive:** `Payment` transaction
+**Primitive:** `Payment` transaction + on-chain verification
 
-The x402 layer (in `packages/ai-agent/src/x402/`) intercepts HTTP requests and requires a proof-of-payment before serving the AI-generated startup report card. The XRPL side provides `verifyPayment()` — a function that:
+The XRPL paywall middleware (in `packages/ai-agent/src/xrpl/paywall.ts`) intercepts HTTP requests and requires a proof-of-payment before serving the AI-generated startup report card. The flow:
 
-1. Fetches the transaction by hash from the ledger
-2. Checks `meta.delivered_amount` (NOT `Amount` — partial payment attack prevention)
-3. Verifies destination address and destination tag match
-4. Confirms `validated: true` (not just submitted)
+1. Client sends 0.05 XRP to the founder wallet on XRPL testnet
+2. Client includes the tx hash in the `X-Payment-TxHash` request header
+3. Middleware calls `verifyPayment()` from `@lapis/xrpl-contracts` which:
+   - Fetches the transaction by hash from the ledger
+   - Checks `meta.delivered_amount` (NOT `Amount` — partial payment attack prevention)
+   - Verifies destination address match
+   - Confirms `validated: true` (not just submitted)
+4. Verified tx hashes are cached in-memory for instant repeat access
 
-This is the information gate. Without paying $0.05, you don't get the data. Without the data, the prediction market is noise.
+This is the information gate. Without paying 0.05 XRP, you don't get the data. Without the data, the prediction market is noise. No external facilitators, no EVM chains — pure XRPL.
 
 ---
 
@@ -95,10 +99,10 @@ Outside XRPL scope. The SAFE is deployed on Base via MetaLex and its hash is wri
 [AI Agent analyzes: GitHub, revenue, socials]
          │
          ▼
-[Report Card published] ─── x402 ──► [Anyone pays $0.05 XRP to read it]
-         │                                        │
-         ▼                                        ▼
-[Prediction Market opens]              [XRPL Payment + verifyPayment()]
+[Report Card published] ──► [Anyone pays 0.05 XRP to read it]
+         │                            │
+         ▼                            ▼
+[Prediction Market opens]   [XRPL Payment + verifyPayment()]
          │
          ▼
 [Market settles: $8M valuation]
