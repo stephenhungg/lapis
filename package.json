@@ -1,0 +1,12 @@
+{
+  "name": "publicround",
+  "private": true,
+  "workspaces": [
+    "packages/*",
+    "apps/*"
+  ],
+  "scripts": {
+    "dev:agent": "npm run dev --workspace=packages/ai-agent",
+    "build": "npm run build --workspace=packages/shared && npm run build --workspace=packages/ai-agent"
+  }
+}
