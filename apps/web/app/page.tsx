@@ -10,20 +10,41 @@ import { DevelopersSection } from "@/components/landing/developers-section";
 import { CtaSection } from "@/components/landing/cta-section";
 import { FooterSection } from "@/components/landing/footer-section";
 
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'SoftwareApplication',
+  name: 'Lapis',
+  description: 'AI agent that analyzes startups, runs prediction markets, and settles equity on the XRP Ledger.',
+  url: 'https://lapis.bet',
+  applicationCategory: 'FinanceApplication',
+  operatingSystem: 'Web',
+  offers: {
+    '@type': 'Offer',
+    price: '0',
+    priceCurrency: 'USD',
+  },
+};
+
 export default function LandingPage() {
   return (
-    <main className="relative min-h-screen overflow-x-hidden noise-overlay">
-      <Navigation />
-      <HeroSection />
-      <FeaturesSection />
-      <HowItWorksSection />
-      <InfrastructureSection />
-      <MetricsSection />
-      <IntegrationsSection />
-      <SecuritySection />
-      <DevelopersSection />
-      <CtaSection />
-      <FooterSection />
-    </main>
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
+      <main className="relative min-h-screen overflow-x-hidden noise-overlay">
+        <Navigation />
+        <HeroSection />
+        <FeaturesSection />
+        <HowItWorksSection />
+        <InfrastructureSection />
+        <MetricsSection />
+        <IntegrationsSection />
+        <SecuritySection />
+        <DevelopersSection />
+        <CtaSection />
+        <FooterSection />
+      </main>
+    </>
   );
 }

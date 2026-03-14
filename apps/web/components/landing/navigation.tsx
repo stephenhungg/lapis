@@ -65,20 +65,28 @@ export function Navigation() {
           {/* Desktop CTA */}
           <div className="hidden md:flex items-center gap-6">
             <a
-              href="/dashboard"
+              href="https://docs.lapis.bet"
+              target="_blank"
+              rel="noopener noreferrer"
               className={`text-foreground/70 hover:text-foreground transition-all duration-300 relative group ${isScrolled ? "text-xs" : "text-sm"}`}
             >
-              Demo
+              Docs
               <span className="absolute -bottom-1 left-0 w-0 h-px bg-foreground transition-all duration-300 group-hover:w-full" />
             </a>
             <a
-              href="https://github.com/stephenhungg/babhacks"
+              href="https://github.com/stephenhungg/lapis"
               target="_blank"
               rel="noopener noreferrer"
               className={`text-foreground/70 hover:text-foreground transition-all duration-300 relative group ${isScrolled ? "text-xs" : "text-sm"}`}
             >
               GitHub
               <span className="absolute -bottom-1 left-0 w-0 h-px bg-foreground transition-all duration-300 group-hover:w-full" />
+            </a>
+            <a
+              href="/dashboard"
+              className={`px-4 py-1.5 bg-foreground text-background rounded-full hover:opacity-90 transition-all duration-300 ${isScrolled ? "text-xs" : "text-sm"}`}
+            >
+              Launch App
             </a>
           </div>
 
@@ -136,20 +144,20 @@ export function Navigation() {
           style={{ transitionDelay: isMobileMenuOpen ? "300ms" : "0ms" }}
           >
             <a
-              href="/dashboard"
-              onClick={() => setIsMobileMenuOpen(false)}
-              className="flex-1 flex items-center justify-center h-14 text-base border border-foreground/20 rounded-full hover:bg-foreground/5 transition-colors"
-            >
-              Demo
-            </a>
-            <a
-              href="https://github.com/stephenhungg/babhacks"
+              href="https://docs.lapis.bet"
               target="_blank"
               rel="noopener noreferrer"
               onClick={() => setIsMobileMenuOpen(false)}
               className="flex-1 flex items-center justify-center h-14 text-base border border-foreground/20 rounded-full hover:bg-foreground/5 transition-colors"
             >
-              GitHub
+              Docs
+            </a>
+            <a
+              href="/dashboard"
+              onClick={() => setIsMobileMenuOpen(false)}
+              className="flex-1 flex items-center justify-center h-14 text-base bg-foreground text-background rounded-full hover:opacity-90 transition-colors"
+            >
+              Launch App
             </a>
           </div>
         </div>
