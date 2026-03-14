@@ -164,7 +164,7 @@ function ListPageInner() {
                   <label className="text-sm font-semibold">XRPL Wallet</label>
                   {walletConnected && (
                     <span className="text-xs text-green-600 font-mono flex items-center gap-1">
-                      <Check className="w-3 h-3" /> r4xK9…F2mP
+                      <Check className="w-3 h-3" /> Connected
                     </span>
                   )}
                 </div>
