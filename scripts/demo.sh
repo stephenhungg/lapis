@@ -58,8 +58,22 @@ while true; do
   sleep 2
 done
 
-# fetch full report
+# fetch full report (may be behind XRPL paywall — fall back to score endpoint)
 REPORT=$(curl -s "$API/report/$ID")
+IS_PAYWALLED=$(echo "$REPORT" | python3 -c "import sys,json; d=json.load(sys.stdin); print('yes' if 'paymentDetails' in d else 'no')" 2>/dev/null)
+
+if [ "$IS_PAYWALLED" = "yes" ]; then
+  echo "  NOTE: Full report is behind XRPL paywall (send 0.05 XRP to access)"
+  echo "  Using score endpoint for display..."
+  echo ""
+  REPORT=$(curl -s "$API/report/$ID/score")
+  # reshape score response to look like full report for display
+  REPORT=$(echo "$REPORT" | python3 -c "
+import sys,json
+d = json.load(sys.stdin)['data']
+print(json.dumps({'data': {'githubUrl': '$REPO_URL', 'status': d['status'], 'scores': d['scores'], 'strengths': [], 'weaknesses': [], 'summary': '(pay 0.05 XRP for full report)', 'adversarialReport': None}}))
+")
+fi
 
 echo "============================================"
 echo "  STARTUP REPORT CARD"

@@ -148,9 +148,9 @@ export default function ReportPage({ params }: { params: Promise<{ id: string }>
             {/* Paywall overlay */}
             <div className="absolute inset-0 flex flex-col items-center justify-center bg-background/90 backdrop-blur-sm p-8 text-center">
               <Lock className="w-8 h-8 text-muted-foreground mb-4" />
-              <h3 className="text-xl font-display mb-2">Full report — $0.05</h3>
+              <h3 className="text-xl font-display mb-2">Full report — 0.05 XRP</h3>
               <p className="text-sm text-muted-foreground mb-6 max-w-sm">
-                Pay once via x402 to unlock the complete deep-dive: commit charts, contributor breakdown,
+                Pay once via XRPL to unlock the complete deep-dive: commit charts, contributor breakdown,
                 language distribution, social growth, adversarial audit, and full reasoning.
               </p>
               <div className="flex items-center gap-4 mb-6 text-xs text-muted-foreground">
@@ -169,20 +169,20 @@ export default function ReportPage({ params }: { params: Promise<{ id: string }>
                 {paying ? (
                   <>
                     <div className="w-3.5 h-3.5 border-2 border-background/40 border-t-background rounded-full animate-spin" />
-                    Processing via x402...
+                    Processing via XRPL...
                   </>
                 ) : (
                   "Unlock for $0.05 →"
                 )}
               </button>
-              <p className="text-xs text-muted-foreground mt-3 font-mono">Paid via x402 · XRPL · instant access</p>
+              <p className="text-xs text-muted-foreground mt-3 font-mono">Paid via XRPL · 0.05 XRP · instant access</p>
             </div>
           </div>
         ) : (
           <div className="space-y-6">
             <div className="flex items-center gap-2 bg-green-50 border border-green-200 px-4 py-2">
               <Check className="w-4 h-4 text-green-500" />
-              <span className="text-sm text-green-700">Unlocked — $0.05 paid via x402</span>
+              <span className="text-sm text-green-700">Unlocked — 0.05 XRP paid via XRPL</span>
             </div>
 
             {/* GitHub activity */}
