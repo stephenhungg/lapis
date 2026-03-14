@@ -71,7 +71,7 @@ export default function DashboardPage() {
                 onClick={handleAnalyze}
                 className="px-6 py-3 bg-foreground text-background text-sm font-semibold hover:bg-foreground/90 transition-all duration-300 flex items-center gap-2 shrink-0 group"
               >
-                Analyze <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
+                List <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
               </button>
             </div>
             <p className="text-xs text-muted-foreground mt-3 font-mono">
@@ -91,7 +91,7 @@ export default function DashboardPage() {
                 <Link
                   key={s.id}
                   href={`/market/${s.id}`}
-                  className="group border border-foreground/10 hover:border-foreground/30 transition-all duration-300 p-5 bg-background/50 hover:bg-foreground/[0.02]"
+                  className="group border border-foreground/10 hover:border-foreground/30 transition-all duration-300 p-5 bg-background hover:bg-foreground/[0.02]"
                 >
                   {/* Header */}
                   <div className="flex items-start justify-between mb-3">
