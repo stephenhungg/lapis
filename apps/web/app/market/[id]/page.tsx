@@ -589,8 +589,8 @@ export default function MarketPage({ params }: { params: Promise<{ id: string }>
               </div>
             )}
 
-            {/* Settle button (when market is open) */}
-            {!isSettled && (
+            {/* Settle button (only after placing a bet) */}
+            {!isSettled && betPlaced && (
               <button
                 onClick={handleSettle}
                 disabled={settleLoading}
