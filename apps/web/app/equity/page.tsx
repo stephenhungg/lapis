@@ -15,6 +15,8 @@ import {
   Info,
 } from "lucide-react";
 import { DashboardNav } from "@/components/dashboard/nav";
+import { WalletModal } from "@/components/wallet-modal";
+import { useWallet } from "@/hooks/use-wallet";
 import { fmt } from "@/lib/adapters";
 import { getXrplStatus } from "@/lib/api";
 import type { XrplStatus, SettlementResult } from "@/lib/api-types";
@@ -271,8 +273,9 @@ function SettlementCard({ settlement }: { settlement: SettlementResult }) {
 }
 
 export default function EquityPage() {
+  const wallet = useWallet();
   const [isVisible, setIsVisible] = useState(false);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [status, setStatus] = useState<XrplStatus | null>(null);
 
@@ -280,8 +283,13 @@ export default function EquityPage() {
     setIsVisible(true);
   }, []);
 
+  // Only fetch XRPL data when wallet is connected
   useEffect(() => {
+    if (!wallet.connected) return;
+
     let cancelled = false;
+    setLoading(true);
+    setError(null);
 
     getXrplStatus()
       .then((data) => {
@@ -298,7 +306,7 @@ export default function EquityPage() {
       });
 
     return () => { cancelled = true; };
-  }, []);
+  }, [wallet.connected]);
 
   const walletEntries = status?.wallets
     ? Object.entries(status.wallets).filter(
@@ -343,7 +351,25 @@ export default function EquityPage() {
           <Coins className="w-8 h-8 text-muted-foreground/30" />
         </div>
 
-        {loading ? (
+        {/* Wallet gate */}
+        {!wallet.connected ? (
+          <div className={`border border-dashed border-foreground/20 p-16 text-center transition-all duration-500 delay-100 ${
+            isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"
+          }`}>
+            <Wallet className="w-10 h-10 text-muted-foreground mx-auto mb-4" />
+            <h2 className="text-xl font-display mb-2">Connect your wallet</h2>
+            <p className="text-sm text-muted-foreground mb-6 max-w-sm mx-auto">
+              Connect your XRPL wallet to view equity tokens, vesting escrows, and settlement history.
+            </p>
+            <button
+              onClick={wallet.connect}
+              className="px-8 py-2.5 bg-foreground text-background text-sm font-semibold hover:bg-foreground/90 transition-all inline-flex items-center gap-2"
+            >
+              <Wallet className="w-4 h-4" />
+              Connect XRPL wallet
+            </button>
+          </div>
+        ) : loading ? (
           <div className={`border border-dashed border-foreground/20 p-16 text-center transition-all duration-500 delay-100 ${
             isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"
           }`}>
@@ -428,6 +454,12 @@ export default function EquityPage() {
           </div>
         )}
       </div>
+
+      <WalletModal
+        open={wallet.showModal}
+        onClose={wallet.closeModal}
+        onConfirm={wallet.confirm}
+      />
     </div>
   );
 }
