@@ -10,9 +10,10 @@ lapis/
 ├── packages/
 │   ├── shared/          # @lapis/shared — TypeScript types
 │   ├── ai-agent/        # @lapis/ai-agent — Express API server
-│   └── xrpl-contracts/  # @lapis/xrpl-contracts — XRPL primitives
+│   ├── xrpl-contracts/  # @lapis/xrpl-contracts — XRPL primitives
+│   └── metalex/         # @lapis/metalex — SAFE contracts on Base Sepolia
 └── apps/
-    └── web/             # Next.js frontend
+    └── web/             # Next.js frontend (lapis.bet)
 ```
 
 ## Package Dependencies
@@ -22,6 +23,7 @@ graph TD
     A[apps/web] --> B[@lapis/shared]
     C[@lapis/ai-agent] --> B
     C --> D[@lapis/xrpl-contracts]
+    C --> E[@lapis/metalex]
     D --> B
 ```
 
@@ -53,13 +55,12 @@ The entire codebase uses ES modules (`"type": "module"` in all package.json file
 import { ReportCard } from "@lapis/shared/types.js";
 ```
 
-### In-Memory Storage
+### Storage Layer
 
-All state (reports, markets, settlements) is stored in JavaScript `Map` objects. This means:
+By default, state is stored in JavaScript `Map` objects (in-memory). Optionally, set `REDIS_URL` to enable Redis-backed persistence:
 
-- State is lost on server restart
-- No database setup required
-- Perfect for hackathon demo scope
+- **Without Redis** — State is lost on server restart, no setup required
+- **With Redis** — Reports, markets, and settlements persist across restarts
 
 ### Fire-and-Forget Pipeline
 

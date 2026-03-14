@@ -32,7 +32,10 @@ sequenceDiagram
     A-->>C: 200 {updated market}
 
     C->>A: POST /market/:id/settle
+    participant B as Base Sepolia
+    A->>B: Deploy SAFE contract (MetaLex)
     A->>X: Issue MPT equity token
+    A->>B: Link XRPL MPT to SAFE contract
     A->>X: Create vesting escrows
     A->>X: RLUSD platform fee
     A-->>C: 200 {settlement with explorer links}
@@ -74,12 +77,14 @@ A score of 50 maps to ~$5.7M. A score of 90 maps to ~$44M.
 
 ## Stage 3: XRPL Settlement
 
-Settlement converts the market consensus into real on-chain equity:
+Settlement converts the market consensus into real on-chain equity across two chains:
 
-1. **Close market** — Finalizes the consensus valuation
-2. **Issue MPT** — Creates an equity token (MPTokenIssuanceCreate) with company metadata, auth requirements, and transfer fees
-3. **Escrow shares** — For each participant (max 5 for demo), creates a vesting escrow with a 90-day cliff and crypto-condition
-4. **RLUSD fee** — Sets up a trust line and sends a 2.5% platform fee in RLUSD
+1. **Deploy SAFE** (optional) — If `BASE_PRIVATE_KEY` is configured, deploys a MetaLex SAFE agreement on Base Sepolia with company metadata, valuation cap, and equity percentage
+2. **Close market** — Finalizes the consensus valuation
+3. **Issue MPT** — Creates an equity token (MPTokenIssuanceCreate) with company metadata, auth requirements, and transfer fees. Embeds the SAFE contract address and document hash in MPT metadata
+4. **Cross-chain link** — Links the XRPL MPT issuance ID back to the Base contract and marks the SAFE as settled on-chain
+5. **Escrow shares** — For each participant (max 5 for demo), creates a vesting escrow with a 90-day cliff and crypto-condition
+6. **RLUSD fee** — Sets up a trust line and sends a 2.5% platform fee in RLUSD
 
 <Warning>
   On testnet, RLUSD payments will fail with `tecPATH_DRY` because wallets don't have RLUSD balance. This is expected. The settlement still completes — RLUSD is non-critical.

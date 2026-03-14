@@ -12,7 +12,15 @@ description: Retrieve the full report card (XRPL paywalled)
 
 ## Authentication
 
-This endpoint is behind an XRPL micropayment paywall (0.05 XRP) when `FOUNDER_SEED` is configured. Send 0.05 XRP to the founder wallet address, then include the transaction hash in the `X-Payment-TxHash` request header. If `FOUNDER_SEED` is not set, the endpoint is free.
+This endpoint is behind an XRPL micropayment paywall (0.05 XRP) when `FOUNDER_SEED` is configured. If `FOUNDER_SEED` is not set, the endpoint is free.
+
+### Payment Flow
+
+1. Send at least 0.05 XRP to the founder wallet address on the configured XRPL network
+2. Include the transaction hash in the `X-Payment-TxHash` request header
+3. Optionally include `X-Payment-Sender` for sender verification (required if `PAYWALL_REQUIRE_SENDER` is set)
+
+The paywall verifies `delivered_amount`, checks the payment is less than 24 hours old, and prevents tx hash reuse across different reports.
 
 ## Response
 
@@ -66,8 +74,22 @@ Returns the full `ReportCard` object with all analysis data.
 <RequestExample>
 ```bash cURL
 # Include the tx hash from your 0.05 XRP payment to the founder wallet
-curl -H "X-Payment-TxHash: YOUR_XRPL_TX_HASH" \
+curl -H "X-Payment-TxHash: ABC123DEF456..." \
   http://localhost:3001/report/a1b2c3d4-e5f6-7890-abcd-ef1234567890
+```
+
+```bash 402 Response
+# If no payment header is provided:
+{
+  "success": false,
+  "error": "Payment required",
+  "paymentDetails": {
+    "destination": "rXXX...",
+    "amountXRP": "0.05",
+    "network": "testnet",
+    "instructions": "Send 0.05 XRP to the destination address..."
+  }
+}
 ```
 </RequestExample>
 

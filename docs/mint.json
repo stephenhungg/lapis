@@ -84,6 +84,7 @@
       "group": "Settlement",
       "pages": [
         "api-reference/market-settle",
+        "api-reference/safe-status",
         "api-reference/xrpl-status",
         "api-reference/escrow-release"
       ]

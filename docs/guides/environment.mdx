@@ -51,6 +51,26 @@ description: Configuration reference for all Lapis services
   Bearer token for authenticating escrow release requests (`POST /xrpl/escrow/:id/release`).
 </ParamField>
 
+<ParamField body="PAYWALL_REQUIRE_SENDER" type="boolean">
+  When set, the XRPL paywall requires the `X-Payment-Sender` header in addition to `X-Payment-TxHash` for sender verification.
+</ParamField>
+
+### MetaLex SAFE (Base Sepolia)
+
+<ParamField body="BASE_PRIVATE_KEY" type="string">
+  EVM private key for deploying SAFE agreements on Base Sepolia. If not set, settlement skips the SAFE deployment step.
+</ParamField>
+
+<ParamField body="BASE_RPC_URL" type="string" default="https://mainnet.base.org">
+  Base RPC endpoint. Override for custom RPC providers.
+</ParamField>
+
+### Persistence
+
+<ParamField body="REDIS_URL" type="string">
+  Redis connection URL for persistent storage. If not set, falls back to in-memory storage (state lost on restart).
+</ParamField>
+
 ## XRPL Contracts (`packages/xrpl-contracts/.env`)
 
 These are only needed to run the standalone XRPL demo:

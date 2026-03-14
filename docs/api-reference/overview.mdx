@@ -46,6 +46,7 @@ Most endpoints are public. Two exceptions:
 | 201 | Created (new resource) |
 | 400 | Bad request / validation error |
 | 401 | Unauthorized |
+| 402 | Payment required (XRPL paywall) |
 | 404 | Resource not found |
 | 500 | Server error |
 
@@ -69,7 +70,8 @@ Most endpoints are public. Two exceptions:
 ### Settlement
 | Method | Path | Description |
 |--------|------|-------------|
-| `POST` | `/market/:marketId/settle` | Settle market on XRPL |
+| `POST` | `/market/:marketId/settle` | Settle market on XRPL + Base Sepolia |
+| `GET` | `/safe/:marketId` | Get SAFE agreement status from Base |
 | `GET` | `/xrpl/status` | XRPL wallet and settlement status |
 | `POST` | `/xrpl/escrow/:marketId/release` | Release a vesting escrow |
 

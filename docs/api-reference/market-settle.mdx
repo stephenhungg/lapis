@@ -49,6 +49,18 @@ This is the main event. Settlement converts the market consensus into real on-ch
         <ResponseField name="explorerLink" type="string">XRPL testnet explorer link.</ResponseField>
       </Expandable>
     </ResponseField>
+    <ResponseField name="safe" type="object | null">
+      MetaLex SAFE agreement deployed on Base Sepolia. `null` if `BASE_PRIVATE_KEY` is not configured.
+      <Expandable title="properties">
+        <ResponseField name="contractAddress" type="string">Base Sepolia contract address.</ResponseField>
+        <ResponseField name="documentHash" type="string">Hash of the SAFE document.</ResponseField>
+        <ResponseField name="deployTxHash" type="string">Deployment transaction hash.</ResponseField>
+        <ResponseField name="linkTxHash" type="string | null">Cross-chain link transaction hash.</ResponseField>
+        <ResponseField name="settleTxHash" type="string | null">Settlement transaction hash.</ResponseField>
+        <ResponseField name="baseSepoliaExplorerUrl" type="string">Base Sepolia explorer link.</ResponseField>
+        <ResponseField name="documentPreview" type="string">Preview text of the SAFE document.</ResponseField>
+      </Expandable>
+    </ResponseField>
     <ResponseField name="rlusdFeeHash" type="string | null">RLUSD payment tx hash (may be null on testnet).</ResponseField>
     <ResponseField name="rlusdTrustLineHash" type="string | null">RLUSD trust line tx hash.</ResponseField>
     <ResponseField name="settledAt" type="string">Settlement timestamp.</ResponseField>
@@ -90,6 +102,15 @@ curl -X POST http://localhost:3001/market/m1a2b3c4-d5e6-7890-abcd-ef1234567890/s
         "explorerLink": "https://testnet.xrpl.org/transactions/..."
       }
     ],
+    "safe": {
+      "contractAddress": "0xABC123...",
+      "documentHash": "0xDEF456...",
+      "deployTxHash": "0x789...",
+      "linkTxHash": "0xAAA...",
+      "settleTxHash": "0xBBB...",
+      "baseSepoliaExplorerUrl": "https://sepolia.basescan.org/address/0xABC123...",
+      "documentPreview": "SAFE Agreement for rippled..."
+    },
     "rlusdFeeHash": null,
     "rlusdTrustLineHash": "ABC123...",
     "settledAt": "2026-03-14T10:15:00.000Z",
@@ -103,15 +124,17 @@ curl -X POST http://localhost:3001/market/m1a2b3c4-d5e6-7890-abcd-ef1234567890/s
 
 ## Settlement Steps
 
-1. **Close market** (if still open)
-2. **Issue MPT equity token** — `MPTokenIssuanceCreate` with auth, escrow, and lock flags
-3. **For each participant** (max 5, serial for sequence safety):
+1. **Deploy SAFE** (optional) — If `BASE_PRIVATE_KEY` is set, deploys a MetaLex SAFE agreement on Base Sepolia with company metadata and valuation cap
+2. **Close market** (if still open)
+3. **Issue MPT equity token** — `MPTokenIssuanceCreate` with auth, escrow, and lock flags. If SAFE was deployed, embeds the contract address and document hash in MPT metadata
+4. **Cross-chain link** — Links the XRPL MPT issuance ID back to the Base contract and marks the SAFE as settled
+5. **For each participant** (max 5, serial for sequence safety):
    - Generate testnet wallet via faucet
    - Holder opt-in (`MPTokenAuthorize`)
    - Founder authorization (`MPTokenAuthorize`)
    - Create vesting escrow (`EscrowCreate`) with 90-day cliff and crypto-condition
-4. **RLUSD trust line** — Setup trust line for stablecoin
-5. **Platform fee** — Send 2.5% fee in RLUSD (non-critical, expected to fail on testnet)
+6. **RLUSD trust line** — Setup trust line for stablecoin
+7. **Platform fee** — Send 2.5% fee in RLUSD (non-critical, expected to fail on testnet)
 
 <Info>
   This endpoint is **idempotent**. Calling it on an already-settled market returns the existing settlement result.

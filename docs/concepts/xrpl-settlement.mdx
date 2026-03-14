@@ -17,6 +17,7 @@ Every financial primitive in Lapis maps to a native XRPL transaction type — no
 | Vesting lock | `EscrowCreate` | Lock shares with time or condition-based release |
 | Vest release | `EscrowFinish` | Release shares when conditions are met |
 | Platform fee | `Payment` (RLUSD) | 2.5% fee via stablecoin |
+| Legal anchor | MetaLex SAFE (Base Sepolia) | Legally binding agreement linked to MPT |
 
 ## Equity Tokens (MPT)
 
@@ -72,7 +73,19 @@ Condition = PREIMAGE-SHA-256 crypto-condition
 Fulfillment = preimage held by AI agent
 ```
 
-The agent holds the fulfillment preimage. When a conversion event is confirmed (e.g., MetaLex webhook), the agent calls `EscrowFinish` with the fulfillment. This makes the agent a **trustless trustee**.
+The agent holds the fulfillment preimage. When a conversion event is confirmed (e.g., MetaLex SAFE settlement on Base Sepolia), the agent calls `EscrowFinish` with the fulfillment. This makes the agent a **trustless trustee**.
+
+## Cross-Chain Legal Anchor (MetaLex)
+
+When `BASE_PRIVATE_KEY` is configured, settlement deploys a SAFE (Simple Agreement for Future Equity) contract on Base Sepolia via MetaLex before issuing the MPT.
+
+The SAFE contract address and document hash are embedded in the MPT's `extraMetadata` field, creating a **bidirectional link** between the on-chain equity token (XRPL) and the legal agreement (Base):
+
+- MPT metadata contains `safeContractAddress` and `safeDocumentHash`
+- Base contract stores the XRPL `mptIssuanceId` via `linkXRPL()`
+- The `/safe/:marketId` endpoint verifies both sides match (`crossChainVerified`)
+
+This means the legal agreement and the equity token are cryptographically linked across two chains — neither can exist without referencing the other.
 
 ### Default Settlement Config
 

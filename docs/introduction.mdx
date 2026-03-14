@@ -16,8 +16,8 @@ Lapis is an AI agent that analyzes startups and settles equity on the [XRP Ledge
   <Step title="Prediction Market">
     A valuation market opens seeded by the AI's estimate. Participants bet on what the startup is worth. The consensus valuation is the volume-weighted average of all bets.
   </Step>
-  <Step title="XRPL Settlement">
-    The market closes and Lapis settles on-chain: MPT equity tokens are issued, vesting escrows lock shares with crypto-conditions, and platform fees are paid in RLUSD.
+  <Step title="Cross-Chain Settlement">
+    The market closes and Lapis settles across two chains: a SAFE agreement deploys on Base Sepolia via MetaLex, MPT equity tokens are issued on XRPL with the SAFE hash embedded, vesting escrows lock shares, and platform fees are paid in RLUSD.
   </Step>
   <Step title="Ongoing Monitoring">
     The AI agent continuously monitors the repo for changes, re-analyzes on new commits, and auto-adjusts market positions when scores shift.
@@ -26,15 +26,16 @@ Lapis is an AI agent that analyzes startups and settles equity on the [XRP Ledge
 
 ## Architecture
 
-Lapis is an npm workspaces monorepo with three core packages:
+Lapis is an npm workspaces monorepo with four core packages:
 
 | Package | Purpose |
 |---------|---------|
 | `@lapis/shared` | Shared TypeScript types (ReportCard, scores, market types) |
 | `@lapis/ai-agent` | Express server — analysis, markets, XRPL settlement |
 | `@lapis/xrpl-contracts` | XRPL primitives — MPT tokens, escrows, payments, wallets |
+| `@lapis/metalex` | MetaLex SAFE contracts on Base Sepolia — legal anchoring |
 
-The frontend (`apps/web`) is a Next.js app maintained separately.
+The frontend (`apps/web`) is a Next.js app at [lapis.bet](https://lapis.bet).
 
 ## Tech Stack
 
@@ -44,3 +45,5 @@ The frontend (`apps/web`) is a Next.js app maintained separately.
 - **Octokit** — GitHub data scraping
 - **xrpl.js v4** — On-chain settlement (MPT, escrows, RLUSD)
 - **XRP Micropayments** — Native XRPL paywall for report access
+- **MetaLex** — SAFE agreement contracts on Base Sepolia
+- **Redis** — Optional persistent storage (falls back to in-memory)

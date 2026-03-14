@@ -1,0 +1,77 @@
+---
+title: Get SAFE Status
+api: GET /safe/{marketId}
+description: Read the SAFE agreement status from Base Sepolia
+---
+
+Returns the MetaLex SAFE contract status for a settled market, including on-chain verification and cross-chain linking with the XRPL MPT.
+
+## Path Parameters
+
+<ParamField path="marketId" type="string" required>
+  Market ID of a settled market.
+</ParamField>
+
+## Response
+
+<ResponseField name="data" type="object">
+  <Expandable title="properties">
+    <ResponseField name="contractAddress" type="string">Base Sepolia contract address.</ResponseField>
+    <ResponseField name="documentHash" type="string">Hash of the SAFE document.</ResponseField>
+    <ResponseField name="deployTxHash" type="string">Deployment transaction hash.</ResponseField>
+    <ResponseField name="linkTxHash" type="string | null">Cross-chain link tx hash (links XRPL MPT to Base contract).</ResponseField>
+    <ResponseField name="settleTxHash" type="string | null">Settlement tx hash on Base.</ResponseField>
+    <ResponseField name="baseSepoliaExplorerUrl" type="string">Block explorer URL.</ResponseField>
+    <ResponseField name="documentPreview" type="string">Preview text of the SAFE agreement.</ResponseField>
+    <ResponseField name="onChainStatus" type="object | null">
+      Live status read from Base Sepolia chain.
+      <Expandable title="properties">
+        <ResponseField name="status" type="string">One of: `Proposed`, `Confirmed`, `Settled`, `Voided`.</ResponseField>
+        <ResponseField name="mptIssuanceId" type="string">XRPL MPT issuance ID linked on-chain.</ResponseField>
+        <ResponseField name="documentHash" type="string">Document hash stored on-chain.</ResponseField>
+      </Expandable>
+    </ResponseField>
+    <ResponseField name="xrplMptIssuanceId" type="string">XRPL MPT issuance ID from the settlement.</ResponseField>
+    <ResponseField name="crossChainVerified" type="boolean">Whether the Base contract's MPT ID matches the XRPL settlement's MPT ID.</ResponseField>
+  </Expandable>
+</ResponseField>
+
+<RequestExample>
+```bash cURL
+curl http://localhost:3001/safe/m1a2b3c4-d5e6-7890-abcd-ef1234567890
+```
+</RequestExample>
+
+<ResponseExample>
+```json 200
+{
+  "success": true,
+  "data": {
+    "contractAddress": "0xABC123...",
+    "documentHash": "0xDEF456...",
+    "deployTxHash": "0x789...",
+    "linkTxHash": "0xAAA...",
+    "settleTxHash": "0xBBB...",
+    "baseSepoliaExplorerUrl": "https://sepolia.basescan.org/address/0xABC123...",
+    "documentPreview": "SAFE Agreement for rippled...",
+    "onChainStatus": {
+      "status": "Settled",
+      "mptIssuanceId": "00000001A1B2C3...",
+      "documentHash": "0xDEF456..."
+    },
+    "xrplMptIssuanceId": "00000001A1B2C3...",
+    "crossChainVerified": true
+  }
+}
+```
+```json 404
+{
+  "success": false,
+  "error": "No SAFE found for this market"
+}
+```
+</ResponseExample>
+
+<Info>
+  If the Base Sepolia RPC is unreachable, the endpoint falls back to cached settlement data without the `onChainStatus` and `crossChainVerified` fields.
+</Info>
