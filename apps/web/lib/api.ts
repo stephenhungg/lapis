@@ -38,10 +38,22 @@ class PaywallError extends ApiError {
   }
 }
 
+function getWalletAddress(): string | null {
+  if (typeof window === "undefined") return null;
+  return localStorage.getItem("lapis_xrpl_wallet") || null;
+}
+
 async function request<T>(path: string, options?: RequestInit): Promise<T> {
+  const wallet = getWalletAddress();
+  const headers: Record<string, string> = {
+    "Content-Type": "application/json",
+    ...(wallet ? { "X-Wallet-Address": wallet } : {}),
+    ...(options?.headers as Record<string, string> ?? {}),
+  };
+
   const res = await fetch(`${API_BASE}${path}`, {
-    headers: { "Content-Type": "application/json" },
     ...options,
+    headers,
   });
 
   const json = await res.json();
@@ -210,8 +222,13 @@ export async function getHealth(): Promise<{ status: string; timestamp: string }
 // ==========================================
 
 /** Get or create a stable anonymous user ID for betting */
+/** Get user identity -- wallet address if connected, fallback to anonymous UUID */
 export function getUserId(): string {
   if (typeof window === "undefined") return "anon";
+  // prefer wallet address as identity
+  const wallet = getWalletAddress();
+  if (wallet) return wallet;
+  // fallback to anonymous UUID for users who haven't connected wallet
   let id = localStorage.getItem("lapis_user_id");
   if (!id) {
     id = crypto.randomUUID();

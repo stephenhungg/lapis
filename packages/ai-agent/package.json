@@ -13,14 +13,15 @@
   "dependencies": {
     "@anthropic-ai/sdk": "^0.39.0",
     "@lapis/metalex": "*",
+    "@lapis/shared": "*",
     "@lapis/xrpl-contracts": "*",
     "@octokit/rest": "^21.0.0",
-    "@lapis/shared": "*",
+    "@supabase/supabase-js": "^2.99.1",
     "cors": "^2.8.5",
     "dotenv": "^16.4.0",
     "express": "^4.21.0",
-    "uuid": "^10.0.0",
-    "ioredis": "^5.6.0"
+    "ioredis": "^5.6.0",
+    "uuid": "^10.0.0"
   },
   "devDependencies": {
     "@types/cors": "^2.8.17",

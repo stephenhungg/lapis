@@ -16,6 +16,7 @@ import { createApiKeyMiddleware } from "./middleware/auth.js";
 // import { createXrplPaywallMiddleware } from "./xrpl/paywall.js";
 import { errorHandler, notFoundHandler } from "./middleware/error-handler.js";
 import { securityHeaders } from "./middleware/security-headers.js";
+import { extractUser } from "./middleware/supabase-auth.js";
 import { router } from "../api/routes.js";
 import { getRedis } from "./redis.js";
 
@@ -108,7 +109,8 @@ async function main() {
   );
 
   // --- Auth ---
-  app.use(createApiKeyMiddleware());
+  app.use(extractUser()); // extract user from Supabase JWT (non-blocking)
+  app.use(createApiKeyMiddleware()); // API key auth for service-to-service
 
   // --- Routes ---
   app.use(router);
