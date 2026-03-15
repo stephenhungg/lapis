@@ -26,6 +26,7 @@ export interface PaymentDetails {
   amountXRP: string;
   network: string;
   instructions: string;
+  headers?: Record<string, string>;
 }
 
 class PaywallError extends ApiError {

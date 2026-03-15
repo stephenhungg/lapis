@@ -50,14 +50,15 @@ export default function MarketPage({ params }: { params: Promise<{ id: string }>
   const [valHistory, setValHistory] = useState<{ time: string; value: number }[]>([]);
   const [settleLoading, setSettleLoading] = useState(false);
   const [safeConverted, setSafeConverted] = useState(false);
-  const [xrplAddress, setXrplAddress] = useState(() => {
-    if (typeof window !== "undefined") {
-      return localStorage.getItem("lapis_xrpl_address") || "";
-    }
-    return "";
-  });
+  const [xrplAddress, setXrplAddress] = useState("");
 
   const marketIdRef = useRef<string | null>(null);
+
+  // Load saved XRPL address from localStorage after mount
+  useEffect(() => {
+    const saved = localStorage.getItem("lapis_xrpl_wallet") || localStorage.getItem("lapis_xrpl_address");
+    if (saved) setXrplAddress(saved);
+  }, []);
 
   // Initial data fetch
   const fetchData = useCallback(async () => {
@@ -148,9 +149,10 @@ export default function MarketPage({ params }: { params: Promise<{ id: string }>
         ? valuationInMillions * 1.1
         : valuationInMillions * 0.9;
 
-      // store XRPL address in localStorage for persistence
+      // sync XRPL address to both localStorage keys for cross-page consistency
       if (xrplAddress) {
         localStorage.setItem("lapis_xrpl_address", xrplAddress);
+        localStorage.setItem("lapis_xrpl_wallet", xrplAddress);
       }
 
       const updatedMarket = await placeBet(
