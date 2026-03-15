@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef, Suspense } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { ArrowRight, Check, Github, Twitter, Wallet, AlertTriangle, ChevronDown, Coins } from "lucide-react";
+import { ArrowRight, Check, AlertTriangle, Loader2 } from "lucide-react";
 import { DashboardNav } from "@/components/dashboard/nav";
 import { WalletModal } from "@/components/wallet-modal";
 import { useWallet } from "@/hooks/use-wallet";
@@ -21,7 +21,6 @@ const ANALYSIS_STEPS = [
   { id: "valuation", label: "Generating valuation estimate..." },
 ];
 
-// map backend status to step progress
 function statusToStep(status: string): number {
   switch (status) {
     case "pending": return 1;
@@ -42,18 +41,15 @@ function ListPageInner() {
   const [twitter, setTwitter] = useState("");
   const [tokenAddress, setTokenAddress] = useState("");
   const [tokenChain, setTokenChain] = useState("");
-  const [showTokenFields, setShowTokenFields] = useState(false);
-  const [description, setDescription] = useState(""); // displayed in confirmation, not sent to backend
+  const [description, setDescription] = useState("");
   const [stage, setStage] = useState<Stage>("form");
   const [completedSteps, setCompletedSteps] = useState<number>(0);
   const [isVisible, setIsVisible] = useState(false);
   const [analyzeError, setAnalyzeError] = useState<string | null>(null);
 
-  // real IDs from backend
   const [reportId, setReportId] = useState<string | null>(null);
   const [marketId, setMarketId] = useState<string | null>(null);
 
-  // real scores from backend
   const [scores, setScores] = useState<{
     codeQuality: number;
     teamStrength: number;
@@ -95,7 +91,6 @@ function ListPageInner() {
   }
 
   function startPolling(id: string) {
-    // animate the first step immediately
     setCompletedSteps(1);
 
     pollRef.current = setInterval(async () => {
@@ -108,7 +103,6 @@ function ListPageInner() {
           if (pollRef.current) clearInterval(pollRef.current);
           setScores(result.scores);
 
-          // create market automatically
           try {
             const market = await api.createMarket(id);
             setMarketId(market.id);
@@ -158,9 +152,9 @@ function ListPageInner() {
             </p>
 
             {analyzeError && (
-              <div className="flex gap-3 bg-red-50 border border-red-200 p-4 mb-6">
+              <div className="flex gap-3 border border-foreground/10 p-4 mb-6">
                 <AlertTriangle className="w-4 h-4 text-red-500 shrink-0 mt-0.5" />
-                <p className="text-xs text-red-700">{analyzeError}</p>
+                <p className="text-xs text-red-500">{analyzeError}</p>
               </div>
             )}
 
@@ -172,8 +166,8 @@ function ListPageInner() {
                 <div className="flex items-center justify-between mb-1">
                   <label className="text-sm font-semibold">XRPL Wallet</label>
                   {wallet.connected && (
-                    <span className="text-xs text-green-600 font-mono flex items-center gap-1">
-                      <Check className="w-3 h-3" /> {wallet.shortAddress}
+                    <span className="text-[10px] font-mono px-2 py-0.5 rounded-full border border-green-500/30 text-green-500">
+                      Connected
                     </span>
                   )}
                 </div>
@@ -184,9 +178,8 @@ function ListPageInner() {
                   <button
                     type="button"
                     onClick={wallet.disconnect}
-                    className="flex items-center gap-2 px-4 py-2 text-sm border border-green-500/30 bg-green-50 text-green-700 transition-all"
+                    className="flex items-center gap-2 px-4 py-2 text-sm font-mono border border-foreground/20 hover:bg-foreground/5 transition-all"
                   >
-                    <Wallet className="w-4 h-4" />
                     {wallet.shortAddress}
                   </button>
                 ) : (
@@ -195,98 +188,72 @@ function ListPageInner() {
                     onClick={wallet.connect}
                     className="flex items-center gap-2 px-4 py-2 text-sm border border-foreground/20 hover:bg-foreground/5 transition-all"
                   >
-                    <Wallet className="w-4 h-4" />
-                    Connect XRPL wallet
+                    Connect wallet
                   </button>
                 )}
               </div>
 
               {/* GitHub */}
               <div>
-                <label className="text-sm font-semibold block mb-1">
-                  GitHub URL <span className="text-red-500">*</span>
-                </label>
+                <label className="text-sm font-semibold block mb-1">GitHub URL</label>
                 <p className="text-xs text-muted-foreground mb-2">
                   Must be a public repository. The AI agent will clone and analyze it.
                 </p>
-                <div className="relative">
-                  <Github className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                  <input
-                    className="w-full border border-foreground/20 bg-background pl-10 pr-4 py-2.5 text-sm focus:outline-none focus:border-foreground/50 transition placeholder-muted-foreground"
-                    placeholder="https://github.com/your-org/your-repo"
-                    value={github}
-                    onChange={(e) => setGithub(e.target.value)}
-                    required
-                  />
-                </div>
+                <input
+                  className="w-full border border-foreground/20 bg-background px-4 py-2.5 text-sm focus:outline-none focus:border-foreground/50 transition placeholder-muted-foreground font-mono"
+                  placeholder="https://github.com/your-org/your-repo"
+                  value={github}
+                  onChange={(e) => setGithub(e.target.value)}
+                  required
+                />
               </div>
 
               {/* Twitter */}
               <div>
                 <label className="text-sm font-semibold block mb-1">Twitter / X</label>
-                <div className="relative">
-                  <Twitter className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                  <input
-                    className="w-full border border-foreground/20 bg-background pl-10 pr-4 py-2.5 text-sm focus:outline-none focus:border-foreground/50 transition placeholder-muted-foreground"
-                    placeholder="@yourhandle"
-                    value={twitter}
-                    onChange={(e) => setTwitter(e.target.value)}
-                  />
-                </div>
+                <input
+                  className="w-full border border-foreground/20 bg-background px-4 py-2.5 text-sm focus:outline-none focus:border-foreground/50 transition placeholder-muted-foreground font-mono"
+                  placeholder="@yourhandle"
+                  value={twitter}
+                  onChange={(e) => setTwitter(e.target.value)}
+                />
               </div>
 
-              {/* Token data (optional, collapsible) */}
-              <div className="border border-foreground/10">
-                <button
-                  type="button"
-                  onClick={() => setShowTokenFields(!showTokenFields)}
-                  className="w-full flex items-center justify-between px-5 py-3 text-sm font-semibold hover:bg-foreground/[0.02] transition-colors"
-                >
-                  <span className="flex items-center gap-2">
-                    <Coins className="w-4 h-4 text-muted-foreground" />
-                    Token data (optional)
-                  </span>
-                  <ChevronDown className={`w-4 h-4 text-muted-foreground transition-transform ${showTokenFields ? "rotate-180" : ""}`} />
-                </button>
-                {showTokenFields && (
-                  <div className="px-5 pb-5 space-y-4 border-t border-foreground/10 pt-4">
-                    <div>
-                      <label className="text-sm font-semibold block mb-1">Token address</label>
-                      <input
-                        className="w-full border border-foreground/20 bg-background px-4 py-2.5 text-sm focus:outline-none focus:border-foreground/50 transition placeholder-muted-foreground font-mono"
-                        placeholder="Contract address (optional)"
-                        value={tokenAddress}
-                        onChange={(e) => setTokenAddress(e.target.value)}
-                      />
-                    </div>
-                    <div>
-                      <label className="text-sm font-semibold block mb-1">Chain</label>
-                      <select
-                        className="w-full border border-foreground/20 bg-background px-4 py-2.5 text-sm focus:outline-none focus:border-foreground/50 transition text-foreground"
-                        value={tokenChain}
-                        onChange={(e) => setTokenChain(e.target.value)}
-                      >
-                        <option value="">Select chain (optional)</option>
-                        <option value="solana">Solana</option>
-                        <option value="ethereum">Ethereum</option>
-                        <option value="base">Base</option>
-                        <option value="xrpl">XRPL</option>
-                        <option value="bsc">BSC</option>
-                        <option value="polygon">Polygon</option>
-                        <option value="arbitrum">Arbitrum</option>
-                        <option value="avalanche">Avalanche</option>
-                        <option value="other">Other</option>
-                      </select>
-                    </div>
-                  </div>
-                )}
+              {/* Token data — inline, no collapsible */}
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="text-sm font-semibold block mb-1">Token address</label>
+                  <input
+                    className="w-full border border-foreground/20 bg-background px-4 py-2.5 text-sm focus:outline-none focus:border-foreground/50 transition placeholder-muted-foreground font-mono"
+                    placeholder="Contract address"
+                    value={tokenAddress}
+                    onChange={(e) => setTokenAddress(e.target.value)}
+                  />
+                </div>
+                <div>
+                  <label className="text-sm font-semibold block mb-1">Chain</label>
+                  <select
+                    className="w-full border border-foreground/20 bg-background px-4 py-2.5 text-sm focus:outline-none focus:border-foreground/50 transition"
+                    value={tokenChain}
+                    onChange={(e) => setTokenChain(e.target.value)}
+                  >
+                    <option value="">Select chain</option>
+                    <option value="xrpl">XRPL</option>
+                    <option value="solana">Solana</option>
+                    <option value="ethereum">Ethereum</option>
+                    <option value="base">Base</option>
+                    <option value="bsc">BSC</option>
+                    <option value="polygon">Polygon</option>
+                    <option value="arbitrum">Arbitrum</option>
+                    <option value="avalanche">Avalanche</option>
+                    <option value="other">Other</option>
+                  </select>
+                </div>
               </div>
 
               {/* Description */}
               <div>
-                <label className="text-sm font-semibold block mb-1">
-                  What does your company do?
-                </label>
+                <label className="text-sm font-semibold block mb-1">What does your company do?</label>
                 <p className="text-xs text-muted-foreground mb-2">
                   Optional — helps the AI understand context beyond what it finds in the repo.
                 </p>
@@ -298,10 +265,10 @@ function ListPageInner() {
                 />
               </div>
 
-              {/* Warning */}
-              <div className="flex gap-3 bg-amber-50 border border-amber-200 p-4">
-                <AlertTriangle className="w-4 h-4 text-amber-500 shrink-0 mt-0.5" />
-                <p className="text-xs text-amber-700">
+              {/* Disclaimer */}
+              <div className="flex gap-3 border border-foreground/10 p-4">
+                <AlertTriangle className="w-4 h-4 text-muted-foreground shrink-0 mt-0.5" />
+                <p className="text-xs text-muted-foreground">
                   Once submitted, the AI report is public and permanent. The adversarial auditor will
                   highlight risks and red flags visible to all investors.
                 </p>
@@ -322,8 +289,8 @@ function ListPageInner() {
         {stage === "analyzing" && (
           <div>
             <div className="flex items-center gap-2 mb-2">
-              <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse" />
-              <span className="text-xs font-semibold font-mono text-blue-600">AI agent running</span>
+              <Loader2 className="w-4 h-4 text-muted-foreground animate-spin" />
+              <span className="text-xs font-semibold font-mono text-muted-foreground">AI agent running</span>
             </div>
             <h1 className="text-3xl font-display mb-2">Analyzing your startup</h1>
             <p className="text-sm text-muted-foreground font-mono mb-8 truncate">{github}</p>
@@ -343,7 +310,7 @@ function ListPageInner() {
                       {done ? (
                         <Check className="w-4 h-4 text-green-500" />
                       ) : active ? (
-                        <div className="w-3 h-3 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
+                        <Loader2 className="w-3.5 h-3.5 text-muted-foreground animate-spin" />
                       ) : (
                         <div className="w-2 h-2 bg-foreground/20 rounded-full" />
                       )}
@@ -357,9 +324,9 @@ function ListPageInner() {
             </div>
 
             <div className="mt-8">
-              <div className="h-1.5 bg-foreground/10 rounded-full overflow-hidden">
+              <div className="h-1.5 bg-foreground/10 overflow-hidden">
                 <div
-                  className="h-full bg-blue-500 rounded-full transition-all duration-500"
+                  className="h-full bg-foreground transition-all duration-500"
                   style={{ width: `${(completedSteps / ANALYSIS_STEPS.length) * 100}%` }}
                 />
               </div>
@@ -372,9 +339,9 @@ function ListPageInner() {
 
         {stage === "done" && (
           <div>
-            <div className="inline-flex items-center gap-2 text-xs font-semibold text-green-700 bg-green-50 border border-green-100 px-3 py-1.5 mb-6">
-              <Check className="w-3.5 h-3.5" />
-              Analysis complete — market is now open
+            <div className="inline-flex items-center gap-2 text-[10px] font-mono px-2 py-0.5 rounded-full border border-green-500/30 text-green-500 mb-6">
+              <Check className="w-3 h-3" />
+              Analysis complete — market is open
             </div>
 
             <h1 className="text-3xl font-display mb-3">Your startup is live</h1>
@@ -405,7 +372,7 @@ function ListPageInner() {
                 href={marketId ? `/market/${marketId}` : `/report/${reportId}`}
                 className="flex-1 py-3 bg-foreground text-background text-sm font-semibold text-center hover:bg-foreground/90 transition-colors"
               >
-                View your market page →
+                View your market page
               </Link>
               <Link
                 href={`/report/${reportId}`}

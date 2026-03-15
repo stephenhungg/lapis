@@ -178,6 +178,6 @@ export function adaptSettlementToMPT(settlement: SettlementResult) {
     escrowStatus: "active" as const,
     vestingCliff: "3 months",
     vestingTotal: "1 year",
-    safeDeployed: settlement.safe ? "Base Sepolia" : "N/A",
+    safeDeployed: settlement.safe ? "Base" : "N/A",
   };
 }

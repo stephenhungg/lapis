@@ -811,7 +811,7 @@ router.get("/safe/:marketId", async (req, res) => {
   }
 
   try {
-    // try to read live on-chain status from Base Sepolia
+    // try to read live on-chain status from Base
     const { readSAFEStatus } = await import("@lapis/metalex");
     const onChainStatus = await readSAFEStatus(
       settlement.safe.contractAddress as `0x${string}`
@@ -835,7 +835,7 @@ router.get("/safe/:marketId", async (req, res) => {
       },
     });
   } catch {
-    // fallback if Base Sepolia is unreachable
+    // fallback if Base is unreachable
     res.json({ success: true, data: settlement.safe });
   }
 });

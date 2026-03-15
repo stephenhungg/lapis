@@ -6,7 +6,7 @@ const abi = artifact.abi;
 const bytecode = artifact.bytecode as `0x${string}`;
 
 /**
- * Deploy a new SAFEAgreement contract to Base Sepolia.
+ * Deploy a new SAFEAgreement contract to Base.
  * The deployer (agent) becomes the contract's `agent` role.
  */
 export async function deploySAFE(

@@ -697,7 +697,7 @@ export default function MarketPage({ params }: { params: Promise<{ id: string }>
                   <p className="font-semibold text-foreground mb-1">SAFE deployment</p>
                   <p>
                     {settlement?.safe?.contractAddress
-                      ? `Deployed at ${settlement.safe.contractAddress.slice(0, 10)}... on Base Sepolia.`
+                      ? `Deployed at ${settlement.safe.contractAddress.slice(0, 10)}... on Base.`
                       : "SAFE not deployed (BASE_PRIVATE_KEY not configured)"}
                   </p>
                 </div>
@@ -726,7 +726,7 @@ export default function MarketPage({ params }: { params: Promise<{ id: string }>
               )}
               {settlement?.safe?.baseSepoliaExplorerUrl && (
                 <div className="mb-6">
-                  <p className="text-xs font-semibold text-foreground mb-2">SAFE contract (Base Sepolia)</p>
+                  <p className="text-xs font-semibold text-foreground mb-2">SAFE contract (Base)</p>
                   <a
                     href={settlement.safe.baseSepoliaExplorerUrl}
                     target="_blank"

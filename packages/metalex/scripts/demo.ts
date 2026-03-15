@@ -1,8 +1,8 @@
 /**
- * Standalone MetaLEX SAFE demo on Base Sepolia.
+ * Standalone MetaLEX SAFE demo on Base.
  * Run: npm run demo
  *
- * Requires BASE_PRIVATE_KEY env var with testnet ETH on Base Sepolia.
+ * Requires BASE_PRIVATE_KEY env var with testnet ETH on Base.
  */
 import dotenv from "dotenv";
 import { resolve, dirname } from "node:path";
@@ -28,7 +28,7 @@ if (!PRIVATE_KEY) {
 }
 
 async function main() {
-  console.log("=== MetaLEX SAFE Demo (Base Sepolia) ===\n");
+  console.log("=== MetaLEX SAFE Demo (Base) ===\n");
 
   // 1. Generate SAFE document
   console.log("1. Generating SAFE document...");
@@ -48,7 +48,7 @@ async function main() {
   console.log(`   Document length: ${safeDoc.text.length} chars\n`);
 
   // 2. Deploy SAFE contract
-  console.log("2. Deploying SAFE contract to Base Sepolia...");
+  console.log("2. Deploying SAFE contract to Base...");
   const deployResult = await deploySAFE(PRIVATE_KEY, {
     founderEvmAddress: PRIVATE_KEY.slice(0, 42) as `0x${string}`, // placeholder
     documentHash: safeDoc.hash,

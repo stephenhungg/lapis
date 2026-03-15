@@ -259,7 +259,7 @@ function SettlementCard({ settlement }: { settlement: SettlementResult }) {
           <Shield className="w-3.5 h-3.5 text-green-600 shrink-0" />
           <span className="text-green-700 font-medium">SAFE on-chain</span>
           <a
-            href={settlement.safe.baseSepoliaExplorerUrl ?? `https://sepolia.basescan.org/address/${settlement.safe.contractAddress}`}
+            href={settlement.safe.baseSepoliaExplorerUrl ?? `https://basescan.org/address/${settlement.safe.contractAddress}`}
             target="_blank"
             rel="noopener noreferrer"
             className="font-mono text-green-600 hover:text-green-800 transition-colors flex items-center gap-1"

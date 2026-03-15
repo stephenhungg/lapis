@@ -12,7 +12,7 @@ export interface SettlementResult {
   rlusdTrustLineHash: string | null;
   settledAt: string;
   explorerLinks: string[];
-  /** MetaLEX SAFE agreement on Base Sepolia (present if BASE_PRIVATE_KEY set) */
+  /** MetaLEX SAFE agreement on Base (present if BASE_PRIVATE_KEY set) */
   safe?: {
     contractAddress: string;
     documentHash: string;

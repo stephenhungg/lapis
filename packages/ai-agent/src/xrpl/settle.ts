@@ -28,7 +28,7 @@ import type {
 } from "./types.js";
 import { DEFAULT_SETTLEMENT_CONFIG } from "./types.js";
 
-// MetaLEX SAFE integration (Base Sepolia)
+// MetaLEX SAFE integration (Base)
 import {
   deploySAFE,
   linkXRPL,
@@ -96,7 +96,7 @@ async function _settleMarketInner(
   );
   console.log(`[settle] valuation cap: ${valuationCapXRP} XRP`);
 
-  // step 3: deploy SAFE on Base Sepolia (non-critical)
+  // step 3: deploy SAFE on Base (non-critical)
   const companyName = extractCompanyName(report.githubUrl);
   let safeResult: SAFEDeployResult | null = null;
   let safeLinkResult: SAFELinkResult | null = null;
@@ -107,7 +107,7 @@ async function _settleMarketInner(
 
   if (basePrivateKey) {
     try {
-      console.log(`[settle] deploying SAFE agreement on Base Sepolia...`);
+      console.log(`[settle] deploying SAFE agreement on Base...`);
 
       const investmentAmountUSD = Math.round(
         (consensusM * 1_000_000 * cfg.platformFeeBps) / 10_000
@@ -168,7 +168,7 @@ async function _settleMarketInner(
     extraMetadata: safeResult
       ? {
           safeContractAddress: safeResult.contractAddress,
-          safeChain: "base-sepolia",
+          safeChain: "base",
           safeDocumentHash: safeResult.documentHash,
         }
       : undefined,

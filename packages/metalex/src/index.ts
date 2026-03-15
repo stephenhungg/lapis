@@ -10,7 +10,7 @@ export {
 // SAFE document generation
 export { generateSAFEDocument } from "./document.js";
 
-// Base Sepolia client utilities
+// Base client utilities
 export {
   getPublicClient,
   getWalletClient,
