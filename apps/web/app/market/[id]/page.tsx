@@ -50,6 +50,12 @@ export default function MarketPage({ params }: { params: Promise<{ id: string }>
   const [valHistory, setValHistory] = useState<{ time: string; value: number }[]>([]);
   const [settleLoading, setSettleLoading] = useState(false);
   const [safeConverted, setSafeConverted] = useState(false);
+  const [xrplAddress, setXrplAddress] = useState(() => {
+    if (typeof window !== "undefined") {
+      return localStorage.getItem("lapis_xrpl_address") || "";
+    }
+    return "";
+  });
 
   const marketIdRef = useRef<string | null>(null);
 
@@ -142,11 +148,17 @@ export default function MarketPage({ params }: { params: Promise<{ id: string }>
         ? valuationInMillions * 1.1
         : valuationInMillions * 0.9;
 
+      // store XRPL address in localStorage for persistence
+      if (xrplAddress) {
+        localStorage.setItem("lapis_xrpl_address", xrplAddress);
+      }
+
       const updatedMarket = await placeBet(
         marketIdRef.current,
         getUserId(),
         betValuation,
-        amount
+        amount,
+        xrplAddress || undefined
       );
       setMarket(updatedMarket);
       const newConsensus = (updatedMarket.consensusValuation ?? 0) * 1_000_000;
@@ -546,6 +558,20 @@ export default function MarketPage({ params }: { params: Promise<{ id: string }>
                       />
                     </div>
 
+                    <div className="mb-4">
+                      <label className="text-xs text-muted-foreground block mb-1.5">XRPL Address (for equity delivery)</label>
+                      <input
+                        type="text"
+                        value={xrplAddress}
+                        onChange={(e) => setXrplAddress(e.target.value)}
+                        className="w-full border border-foreground/20 bg-background px-3 py-2 text-sm font-mono focus:outline-none focus:border-foreground/50"
+                        placeholder="rXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
+                      />
+                      <p className="text-[10px] text-muted-foreground mt-1">
+                        Equity tokens will be delivered to this address on settlement
+                      </p>
+                    </div>
+
                     <button
                       onClick={handlePlaceBet}
                       disabled={!betDirection || !betAmount || betLoading}
@@ -709,17 +735,31 @@ export default function MarketPage({ params }: { params: Promise<{ id: string }>
                   </a>
                 </div>
               )}
-              <button
-                onClick={() => setSafeConverted(true)}
-                disabled={safeConverted}
-                className={`px-8 py-3 text-sm font-bold transition-all ${
-                  safeConverted
-                    ? "bg-green-500 text-white cursor-default"
-                    : "bg-foreground text-background hover:bg-foreground/90"
-                }`}
-              >
-                {safeConverted ? "✓ Tokens converted to equity" : "Convert tokens to equity →"}
-              </button>
+              {/* Show user's equity position if they participated */}
+              {settlement.escrows.length > 0 && (
+                <div className="mb-4 border border-green-500/30 bg-green-500/5 p-4">
+                  <p className="text-xs font-semibold text-green-600 mb-2">YOUR EQUITY POSITIONS</p>
+                  {settlement.escrows.map((escrow, i) => (
+                    <div key={i} className="flex justify-between items-center text-xs py-1.5 border-b border-foreground/5 last:border-0">
+                      <div>
+                        <span className="font-mono text-foreground">{escrow.userId.slice(0, 12)}...</span>
+                        <span className="text-muted-foreground ml-2">{escrow.sharesAllocated} shares</span>
+                      </div>
+                      <a
+                        href={escrow.explorerLink}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="text-blue-600 hover:text-blue-800 underline font-mono"
+                      >
+                        {escrow.xrplAddress.slice(0, 8)}...
+                      </a>
+                    </div>
+                  ))}
+                </div>
+              )}
+              <div className="px-8 py-3 text-sm font-bold bg-green-500 text-white text-center">
+                Equity issued on XRPL
+              </div>
             </>
           ) : (
             <p className="text-sm text-muted-foreground">

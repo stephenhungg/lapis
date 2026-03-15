@@ -11,6 +11,7 @@ export interface MarketBet {
   valuation: number; // in millions
   amount: number; // bet size in USD
   timestamp: string;
+  xrplAddress?: string; // investor's XRPL address for equity delivery
 }
 
 export interface ValuationMarket {
@@ -64,7 +65,8 @@ export async function placeBet(
   marketId: string,
   userId: string,
   valuation: number,
-  amount: number
+  amount: number,
+  xrplAddress?: string
 ): Promise<ValuationMarket> {
   const market = await redisGet<ValuationMarket>(MARKET_PREFIX + marketId);
   if (!market) throw new Error(`Market not found: ${marketId}`);
@@ -75,6 +77,7 @@ export async function placeBet(
     valuation,
     amount,
     timestamp: new Date().toISOString(),
+    ...(xrplAddress ? { xrplAddress } : {}),
   });
 
   // recalculate consensus as volume-weighted average

@@ -103,6 +103,39 @@ export interface MarketBet {
   valuation: number; // in millions
   amount: number; // bet size in USD
   timestamp: string;
+  xrplAddress?: string; // investor's XRPL address for equity delivery
+}
+
+export interface PortfolioData {
+  userId: string;
+  settlements: Array<{
+    marketId: string;
+    reportId: string;
+    companyName: string;
+    consensusValuationM: number;
+    equityToken: EquityToken;
+    userEscrows: ParticipantEscrow[];
+    safe: { contractAddress: string; baseExplorerUrl: string } | null;
+    settledAt: string;
+  }>;
+  activeBets: Array<{
+    marketId: string;
+    reportId: string;
+    githubUrl: string;
+    status: string;
+    consensusValuation: number | null;
+    userBets: MarketBet[];
+  }>;
+  totalEquityPositions: number;
+  totalActiveBets: number;
+}
+
+export interface WalletPortfolio {
+  address: string;
+  xrpBalance: string;
+  onChainHoldings: Array<{ mptIssuanceId: string; value: string }>;
+  settlements: PortfolioData["settlements"];
+  totalEquityPositions: number;
 }
 
 export interface ValuationMarket {

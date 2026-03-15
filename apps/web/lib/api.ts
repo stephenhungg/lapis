@@ -4,6 +4,8 @@ import type {
   ValuationMarket,
   SettlementResult,
   XrplStatus,
+  PortfolioData,
+  WalletPortfolio,
 } from "./api-types";
 
 const API_BASE =
@@ -118,11 +120,12 @@ export async function placeBet(
   marketId: string,
   userId: string,
   valuation: number,
-  amount: number
+  amount: number,
+  xrplAddress?: string
 ): Promise<ValuationMarket> {
   return request(`/market/${marketId}/bet`, {
     method: "POST",
-    body: JSON.stringify({ userId, valuation, amount }),
+    body: JSON.stringify({ userId, valuation, amount, ...(xrplAddress ? { xrplAddress } : {}) }),
   });
 }
 
@@ -165,6 +168,18 @@ export interface SAFEStatus {
 
 export async function getSafe(marketId: string): Promise<SAFEStatus> {
   return request(`/safe/${marketId}`);
+}
+
+// ==========================================
+// PORTFOLIO
+// ==========================================
+
+export async function getPortfolio(userId: string): Promise<PortfolioData> {
+  return request(`/portfolio/${userId}`);
+}
+
+export async function getWalletPortfolio(address: string): Promise<WalletPortfolio> {
+  return request(`/portfolio/wallet/${address}`);
 }
 
 // ==========================================

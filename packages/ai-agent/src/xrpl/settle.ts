@@ -236,21 +236,31 @@ async function _settleMarketInner(
     );
 
     try {
-      // generate a testnet wallet for this participant
-      // (in production, bettors would provide their XRPL address)
-      const participantWallet = generateWallet();
-      await fundWallet(participantWallet);
-      console.log(
-        `[settle]   funded wallet: ${participantWallet.address}`
-      );
+      let beneficiaryAddress: string;
 
-      // opt-in FIRST (creates MPToken object), then issuer authorizes
-      await holderOptIn(participantWallet, equityToken.mptIssuanceId);
-      await authorizeHolder(
-        founderWallet,
-        equityToken.mptIssuanceId,
-        participantWallet.address
-      );
+      if (bet.xrplAddress) {
+        // real investor wallet -- use their address directly
+        beneficiaryAddress = bet.xrplAddress;
+        console.log(
+          `[settle]   using investor wallet: ${beneficiaryAddress}`
+        );
+      } else {
+        // no address provided -- generate a testnet wallet (demo fallback)
+        const participantWallet = generateWallet();
+        await fundWallet(participantWallet);
+        beneficiaryAddress = participantWallet.address;
+        console.log(
+          `[settle]   generated demo wallet: ${beneficiaryAddress}`
+        );
+
+        // MPT opt-in + authorize (only possible with generated wallets we control)
+        await holderOptIn(participantWallet, equityToken.mptIssuanceId);
+        await authorizeHolder(
+          founderWallet,
+          equityToken.mptIssuanceId,
+          participantWallet.address
+        );
+      }
 
       // generate crypto-condition (agent holds the fulfillment)
       const { condition, fulfillment } = generateCryptoCondition();
@@ -264,7 +274,7 @@ async function _settleMarketInner(
       ); // 1 XRP per million shares, minimum 1
 
       const escrow = await createVestingEscrow(founderWallet, {
-        beneficiaryAddress: participantWallet.address,
+        beneficiaryAddress,
         mptIssuanceId: "",
         sharesAmount: escrowXrpAmount,
         vestingCliffDate: vestingCliff,
@@ -279,11 +289,11 @@ async function _settleMarketInner(
         fulfillment
       );
 
-      const explorerLink = `https://testnet.xrpl.org/accounts/${participantWallet.address}`;
+      const explorerLink = `https://testnet.xrpl.org/accounts/${beneficiaryAddress}`;
 
       participantEscrows.push({
         userId: bet.userId,
-        xrplAddress: participantWallet.address,
+        xrplAddress: beneficiaryAddress,
         escrow,
         sharesAllocated: shares,
         condition,

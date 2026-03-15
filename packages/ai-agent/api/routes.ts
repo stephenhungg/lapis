@@ -213,10 +213,11 @@ router.post("/market/:reportId", async (req, res) => {
 
 // POST /market/:marketId/bet - place a bet on a market
 router.post("/market/:marketId/bet", async (req, res) => {
-  const { userId: rawUserId, valuation, amount } = req.body as {
+  const { userId: rawUserId, valuation, amount, xrplAddress } = req.body as {
     userId: string;
     valuation: number;
     amount: number;
+    xrplAddress?: string;
   };
 
   if (
@@ -229,10 +230,20 @@ router.post("/market/:marketId/bet", async (req, res) => {
   )
     return;
 
+  // validate XRPL address format if provided
+  if (xrplAddress && !/^r[1-9A-HJ-NP-Za-km-z]{24,34}$/.test(xrplAddress)) {
+    const response: ApiResponse<never> = {
+      success: false,
+      error: "Invalid XRPL address format (must start with 'r')",
+    };
+    res.status(400).json(response);
+    return;
+  }
+
   const userId = sanitizeString(rawUserId, 100);
 
   try {
-    const market = await placeBet(req.params.marketId, userId, valuation, amount);
+    const market = await placeBet(req.params.marketId, userId, valuation, amount, xrplAddress);
     const response: ApiResponse<ValuationMarket> = {
       success: true,
       data: market,
@@ -659,6 +670,113 @@ router.post("/xrpl/escrow/:marketId/release", async (req, res) => {
     };
     res.status(500).json(response);
   }
+});
+
+// ==========================================
+// PORTFOLIO (investor observability)
+// ==========================================
+
+// GET /portfolio/:userId - get all equity positions for a user
+router.get("/portfolio/:userId", async (req, res) => {
+  const userId = req.params.userId;
+  const allSettlements = await getAllSettlements();
+  const allMarkets = await getAllMarkets();
+
+  // find settlements where this user has escrows
+  const userSettlements = allSettlements
+    .filter((s) => s.escrows.some((e) => e.userId === userId))
+    .map((s) => ({
+      marketId: s.marketId,
+      reportId: s.reportId,
+      companyName: s.companyName,
+      consensusValuationM: s.consensusValuationM,
+      equityToken: s.equityToken,
+      userEscrows: s.escrows.filter((e) => e.userId === userId),
+      safe: s.safe
+        ? {
+            contractAddress: s.safe.contractAddress,
+            baseExplorerUrl: s.safe.baseSepoliaExplorerUrl,
+          }
+        : null,
+      settledAt: s.settledAt,
+    }));
+
+  // find all bets by this user across markets
+  const userBets = allMarkets
+    .filter((m) => m.bets.some((b) => b.userId === userId))
+    .map((m) => ({
+      marketId: m.id,
+      reportId: m.reportId,
+      githubUrl: m.githubUrl,
+      status: m.status,
+      consensusValuation: m.consensusValuation,
+      userBets: m.bets.filter((b) => b.userId === userId),
+    }));
+
+  res.json({
+    success: true,
+    data: {
+      userId,
+      settlements: userSettlements,
+      activeBets: userBets,
+      totalEquityPositions: userSettlements.length,
+      totalActiveBets: userBets.reduce((sum, m) => sum + m.userBets.length, 0),
+    },
+  });
+});
+
+// GET /portfolio/wallet/:address - get equity positions by XRPL address
+router.get("/portfolio/wallet/:address", async (req, res) => {
+  const address = req.params.address;
+
+  // validate XRPL address format
+  if (!/^r[1-9A-HJ-NP-Za-km-z]{24,34}$/.test(address)) {
+    res.status(400).json({ success: false, error: "Invalid XRPL address" });
+    return;
+  }
+
+  const allSettlements = await getAllSettlements();
+
+  // find settlements where this address has escrows
+  const userSettlements = allSettlements
+    .filter((s) => s.escrows.some((e) => e.xrplAddress === address))
+    .map((s) => ({
+      marketId: s.marketId,
+      reportId: s.reportId,
+      companyName: s.companyName,
+      consensusValuationM: s.consensusValuationM,
+      equityToken: s.equityToken,
+      userEscrows: s.escrows.filter((e) => e.xrplAddress === address),
+      safe: s.safe
+        ? {
+            contractAddress: s.safe.contractAddress,
+            baseExplorerUrl: s.safe.baseSepoliaExplorerUrl,
+          }
+        : null,
+      settledAt: s.settledAt,
+    }));
+
+  // try on-chain holdings query (non-critical)
+  let onChainHoldings: Array<{ mptIssuanceId: string; value: string }> = [];
+  let xrpBalance = "0";
+  try {
+    const { getMptHoldings, getBalance } = await import("@lapis/xrpl-contracts");
+    onChainHoldings = await getMptHoldings(address);
+    xrpBalance = await getBalance(address);
+  } catch {
+    // XRPL query failed, continue with off-chain data
+  }
+
+  res.json({
+    success: true,
+    data: {
+      address,
+      xrpBalance,
+      onChainHoldings,
+      settlements: userSettlements,
+      totalEquityPositions: userSettlements.length,
+    },
+  });
 });
 
 // ==========================================
